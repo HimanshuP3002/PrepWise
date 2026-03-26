@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrepWise | Auth + Meal Planning</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Sora:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="page-shell">
+        <header class="topbar">
+            <a href="#auth-panel" class="brand">
+                <span class="brand-mark">PW</span>
+                <span class="brand-copy">
+                    <strong>PrepWise</strong>
+                    <span>Meal attendance, securely organized.</span>
+                </span>
+            </a>
+
+            <div class="topbar-actions">
+                <span id="authStatus" class="auth-status">Not signed in</span>
+                <button id="logoutBtn" class="ghost-btn hidden" type="button" onclick="logoutUser()">Logout</button>
+            </div>
+        </header>
+
+        <main class="page-wrapper">
+            <section class="hero">
+                <div class="hero-copy glass-card">
+                    <p class="eyebrow">PrepWise access</p>
+                    <h1>A single place for secure sign in and meal responses.</h1>
+                    <p class="hero-text">
+                        Create your account once, sign in securely, and submit daily meal choices with a clean workflow
+                        that keeps students and mess coordinators aligned.
+                    </p>
+
+                    <div class="hero-metrics">
+                        <div class="metric-card">
+                            <span class="metric-label">Account</span>
+                            <strong>Signup + login built in</strong>
+                            <p>Users can create accounts and return later without re-entering identity details.</p>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Workflow</span>
+                            <strong>One authenticated experience</strong>
+                            <p>Voting is now tied to the signed-in user, which reduces invalid submissions.</p>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Control</span>
+                            <strong>Clear state and validation</strong>
+                            <p>Forms provide inline errors, session state, and direct backend integration.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="hero-panel glass-card">
+                    <div class="signal-card">
+                        <div class="signal-heading">
+                            <span class="signal-dot"></span>
+                            Product flow
+                        </div>
+                        <div class="signal-grid">
+                            <div>
+                                <span>Step 1</span>
+                                <strong>Create account or sign in</strong>
+                            </div>
+                            <div>
+                                <span>Step 2</span>
+                                <strong>PrepWise loads your identity automatically</strong>
+                            </div>
+                            <div>
+                                <span>Step 3</span>
+                                <strong>Submit your meal plan for the day</strong>
+                            </div>
+                            <div>
+                                <span>Step 4</span>
+                                <strong>Check live attendance totals</strong>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </section>
+
+            <section class="workspace" id="authWorkspace">
+                <section class="panel panel-primary glass-card" id="auth-panel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Authentication</p>
+                            <h2>Login or create your account</h2>
+                        </div>
+                        <div class="panel-badge">Required before voting</div>
+                    </div>
+
+                    <p class="panel-intro">
+                        PrepWise uses your account identity for voting, so you only need to manage your meal choice and
+                        date after signing in.
+                    </p>
+
+                    <div class="auth-tabs">
+                        <button id="loginTab" class="tab-btn active" type="button" onclick="switchAuthMode('login')">
+                            Login
+                        </button>
+                        <button id="signupTab" class="tab-btn" type="button" onclick="switchAuthMode('signup')">
+                            Sign Up
+                        </button>
+                    </div>
+
+                    <form id="loginForm" class="auth-form" novalidate>
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" class="form-control" placeholder="you@example.com">
+                            <p id="loginEmailError" class="field-error"></p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <div class="password-field">
+                                <input type="password" id="loginPassword" class="form-control" placeholder="Enter password">
+                                <button class="password-toggle" type="button" aria-label="Show password"
+                                    onclick="togglePasswordVisibility('loginPassword', this)">
+                                    <span class="material-symbols-outlined eye-icon" aria-hidden="true">visibility_off</span>
+                                </button>
+                            </div>
+                            <p id="loginPasswordError" class="field-error"></p>
+                        </div>
+
+                        <button id="loginBtn" class="btn-submit" type="submit">Login</button>
+                        <div id="loginResult" class="result-toast"></div>
+                    </form>
+
+                    <form id="signupForm" class="auth-form hidden" novalidate>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="signupUserId">User ID</label>
+                                <input type="text" id="signupUserId" class="form-control" placeholder="E.g., 12345">
+                                <p id="signupUserIdError" class="field-error"></p>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="signupName">Full Name</label>
+                                <input type="text" id="signupName" class="form-control" placeholder="E.g., Himanshu Pandey">
+                                <p id="signupNameError" class="field-error"></p>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="signupEmail">Email</label>
+                            <input type="email" id="signupEmail" class="form-control" placeholder="you@example.com">
+                            <p id="signupEmailError" class="field-error"></p>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="signupPassword">Password</label>
+                            <div class="password-field">
+                                <input type="password" id="signupPassword" class="form-control" placeholder="Minimum 6 characters">
+                                <button class="password-toggle" type="button" aria-label="Show password"
+                                    onclick="togglePasswordVisibility('signupPassword', this)">
+                                    <span class="material-symbols-outlined eye-icon" aria-hidden="true">visibility_off</span>
+                                </button>
+                            </div>
+                            <p id="signupPasswordError" class="field-error"></p>
+                        </div>
+
+                        <button id="signupBtn" class="btn-submit" type="submit">Create Account</button>
+                        <div id="signupResult" class="result-toast"></div>
+                    </form>
+                </section>
+
+                <aside class="panel panel-secondary glass-card account-panel" id="accountPanel">
+                    <div class="panel-header">
+                        <div>
+                            <p class="eyebrow">Session</p>
+                            <h2>Your PrepWise account</h2>
+                        </div>
+                        <div class="panel-badge panel-badge-secondary">Live state</div>
+                    </div>
+
+                    <div class="account-summary">
+                        <div class="snapshot-card">
+                            <span class="snapshot-label">User ID</span>
+                            <strong id="accountUserId">Not signed in</strong>
+                        </div>
+                        <div class="snapshot-card">
+                            <span class="snapshot-label">Name</span>
+                            <strong id="accountName">-</strong>
+                        </div>
+                        <div class="snapshot-card accent">
+                            <span class="snapshot-label">Email</span>
+                            <strong id="accountEmail">-</strong>
+                        </div>
+                    </div>
+
+                    <div class="ops-footnote">
+                        <strong>Why sign in?</strong>
+                        <p>Your vote is attached to your PrepWise account, so the system can prevent duplicates and keep
+                            daily records consistent.</p>
+                    </div>
+                </aside>
+            </section>
+
+            <section id="appPanel" class="app-panel hidden">
+                <section class="workspace">
+                    <article class="panel panel-primary glass-card" id="vote-panel">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">Student check-in</p>
+                                <h2>Confirm your meal plan</h2>
+                            </div>
+                            <div class="panel-badge">Signed-in voting</div>
+                        </div>
+
+                        <p class="panel-intro">
+                            Your account identity is already loaded. Select a date, choose your meal status, and submit.
+                        </p>
+
+                        <div class="identity-strip">
+                            <div class="identity-chip">
+                                <span>User ID</span>
+                                <strong id="voteUserId">-</strong>
+                            </div>
+                            <div class="identity-chip">
+                                <span>Name</span>
+                                <strong id="voteName">-</strong>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="date">Attendance Date</label>
+                            <input type="date" id="date" class="form-control">
+                            <p id="dateError" class="field-error"></p>
+                        </div>
+
+                        <div class="choice-section">
+                            <div class="section-heading">
+                                <div>
+                                    <p class="eyebrow">Meal status</p>
+                                    <p class="section-note">Choose whether you will eat on the selected date.</p>
+                                </div>
+                            </div>
+
+                            <div class="radio-group" id="statusGroup">
+                                <label class="radio-card">
+                                    <input type="radio" name="status" value="yes">
+                                    <span class="radio-content">
+                                        <span class="radio-kicker">Attending</span>
+                                        <strong>Yes, include my meal</strong>
+                                        <small>Use this when you are planning to eat.</small>
+                                    </span>
+                                </label>
+
+                                <label class="radio-card">
+                                    <input type="radio" name="status" value="no">
+                                    <span class="radio-content">
+                                        <span class="radio-kicker">Skipping</span>
+                                        <strong>No, I will not eat</strong>
+                                        <small>Use this to keep the daily count accurate.</small>
+                                    </span>
+                                </label>
+                            </div>
+                            <p id="statusError" class="field-error"></p>
+                        </div>
+
+                        <button id="submitBtn" class="btn-submit" type="button" onclick="submitVote()">
+                            Confirm Vote
+                        </button>
+
+                        <div id="result" class="result-toast"></div>
+                    </article>
+
+                    <aside class="panel panel-secondary glass-card" id="ops-panel">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">Operations desk</p>
+                                <h2>Check meal totals</h2>
+                            </div>
+                            <div class="panel-badge panel-badge-secondary">Admin count view</div>
+                        </div>
+
+                        <p class="panel-intro">
+                            Select a date and pull the latest response totals for planning and kitchen coordination.
+                        </p>
+
+                        <div class="ops-snapshot">
+                            <div class="snapshot-card">
+                                <span class="snapshot-label">Selected date</span>
+                                <strong id="liveDate">Not loaded</strong>
+                            </div>
+                            <div class="snapshot-row">
+                                <div class="snapshot-card">
+                                    <span class="snapshot-label">Yes</span>
+                                    <strong id="liveYes">0</strong>
+                                </div>
+                                <div class="snapshot-card">
+                                    <span class="snapshot-label">No</span>
+                                    <strong id="liveNo">0</strong>
+                                </div>
+                                <div class="snapshot-card accent">
+                                    <span class="snapshot-label">Total</span>
+                                    <strong id="liveTotal">0</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="countDate">Reporting Date</label>
+                            <input type="date" id="countDate" class="form-control">
+                            <p id="countDateError" class="field-error"></p>
+                        </div>
+
+                        <button id="countBtn" class="btn-submit btn-secondary" type="button" onclick="getCount()">
+                            Get Count
+                        </button>
+
+                        <div id="countResult" class="result-toast"></div>
+                    </aside>
+                </section>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

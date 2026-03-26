@@ -1,0 +1,6 @@
+.env/
+.git/
+
+backend/.env
+backend/.env.example
+node_modules/
