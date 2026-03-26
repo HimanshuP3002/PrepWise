@@ -49,8 +49,9 @@ PrepWise/
 │   ├── .env.example
 │   ├── package.json
 │   ├── package-lock.json
-│   ├── server.js
-│   └── test_votes.js
+│   └── server.js
+├── docs/
+|    └── screenshots
 ├── frontend/
 │   ├── index.html
 │   ├── script.js
@@ -131,7 +132,7 @@ Return the currently authenticated user.
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/HimanshuP3002/PrepWise
 cd PrepWise
 ```
 
@@ -208,6 +209,11 @@ You can place images in a folder such as `docs/screenshots/` and reference them 
 
 ## Author
 
-**Himanshu**
+**Himanshu Bipin Pandey**
 
-Add portfolio, LinkedIn, and GitHub links here.
+## Profile Link
+
+### Linkdien
+[LinkDien Profile](https://www.linkedin.com/in/himanshu-pandey-05a951345/)
+### Github 
+[Github](https://github.com/HimanshuP3002)
