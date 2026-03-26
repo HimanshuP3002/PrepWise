@@ -41,6 +41,12 @@ function clearSession() {
   localStorage.removeItem(STORAGE_KEY);
 }
 
+function resetClientSessionState() {
+  clearSession();
+  currentUser = null;
+  currentToken = null;
+}
+
 function togglePasswordVisibility(fieldId, button) {
   const input = document.getElementById(fieldId);
 
@@ -367,7 +373,7 @@ async function handleLogin(event) {
 }
 
 function logoutUser() {
-  clearSession();
+  resetClientSessionState();
   renderSession(null, null);
   document.querySelectorAll('input[name="status"]').forEach((input) => {
     input.checked = false;
@@ -376,6 +382,12 @@ function logoutUser() {
 }
 
 async function restoreSession() {
+  if (window.location.pathname === LOGIN_PATH) {
+    resetClientSessionState();
+    renderSession(null, null);
+    return;
+  }
+
   const session = getSession();
 
   if (!session?.token || !session?.user) {
@@ -393,7 +405,7 @@ async function restoreSession() {
     saveSession({ token: session.token, user: result.user });
     renderSession(result.user, session.token);
   } catch (error) {
-    clearSession();
+    resetClientSessionState();
     renderSession(null, null);
     if (window.location.pathname === APP_PATH) {
       redirectTo(LOGIN_PATH);
