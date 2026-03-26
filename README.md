@@ -49,8 +49,9 @@ PrepWise/
 │   ├── .env.example
 │   ├── package.json
 │   ├── package-lock.json
-│   ├── server.js
-│   └── test_votes.js
+│   └── server.js
+├── docs/
+|    └── screenshots
 ├── frontend/
 │   ├── index.html
 │   ├── script.js
