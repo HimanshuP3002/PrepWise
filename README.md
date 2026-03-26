@@ -210,5 +210,9 @@ You can place images in a folder such as `docs/screenshots/` and reference them 
 
 **Himanshu Bipin Pandey**
 
+### Profile Link
+
+## Linkdien
 [LinkDien Profile](https://www.linkedin.com/in/himanshu-pandey-05a951345/)
+## Github 
 [Github](https://github.com/HimanshuP3002)
