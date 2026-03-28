@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PrepWise | Auth + Meal Planning</title>
+    <title>PrepWise | Smart Meal Coordination</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2.0">
+    <link rel="stylesheet" href="style.css?v=3.0">
 </head>
 <body>
-    <div class="aurora-bg">
-        <div class="aurora-blob blob-1"></div>
-        <div class="aurora-blob blob-2"></div>
-        <div class="aurora-blob blob-3"></div>
+    <div class="scene-backdrop">
+        <div class="noise-layer"></div>
+        <div class="grid-layer"></div>
+        <div class="glow-orb orb-one"></div>
+        <div class="glow-orb orb-two"></div>
+        <div class="glow-orb orb-three"></div>
     </div>
+
     <div class="page-shell">
         <header class="topbar">
             <a href="#auth-panel" class="brand">
@@ -24,86 +27,127 @@
                 </span>
                 <span class="brand-copy">
                     <strong>PrepWise</strong>
-                    <span>Meal attendance, securely organized.</span>
+                    <span>Meal planning command center for hostels and mess operations.</span>
                 </span>
             </a>
 
             <div class="topbar-actions">
+                <div class="status-pill">
+                    <span class="status-pulse"></span>
+                    <span id="systemDate">Loading date</span>
+                </div>
                 <span id="authStatus" class="auth-status">Not signed in</span>
                 <button id="logoutBtn" class="ghost-btn hidden" type="button" onclick="logoutUser()">Logout</button>
             </div>
         </header>
 
         <main class="page-wrapper">
-            <section class="hero">
-                <div class="hero-copy glass-card">
-                    <p class="eyebrow">PrepWise access</p>
-                    <h1>A single place for secure sign in and meal responses.</h1>
+            <section class="hero-panel shell-card reveal">
+                <div class="hero-copy">
+                    <p class="eyebrow">Campus meal intelligence</p>
+                    <h1>Turn routine attendance into a high-clarity experience.</h1>
                     <p class="hero-text">
-                        Create your account once, sign in securely, and submit daily meal choices with a clean workflow
-                        that keeps students and mess coordinators aligned.
+                        PrepWise combines secure access, elegant meal confirmations, and live operational insight in one
+                        cinematic interface built to feel modern, trustworthy, and competition-ready.
                     </p>
 
-                    <div class="hero-metrics">
-                        <div class="metric-card">
-                            <span class="metric-label">Account</span>
-                            <strong>Signup + login built in</strong>
-                            <p>Users can create accounts and return later without re-entering identity details.</p>
+                    <div class="hero-actions">
+                        <a href="#auth-panel" class="hero-button hero-button-primary">Start with secure access</a>
+                        <a href="#ops-panel" class="hero-button hero-button-secondary">See live totals</a>
+                    </div>
+
+                    <div class="trust-band">
+                        <div class="trust-chip">
+                            <span class="trust-label">Security</span>
+                            <strong>Account-based voting</strong>
                         </div>
-                        <div class="metric-card">
-                            <span class="metric-label">Workflow</span>
-                            <strong>One authenticated experience</strong>
-                            <p>Voting is now tied to the signed-in user, which reduces invalid submissions.</p>
+                        <div class="trust-chip">
+                            <span class="trust-label">Speed</span>
+                            <strong>One-tap daily decision</strong>
                         </div>
-                        <div class="metric-card">
-                            <span class="metric-label">Control</span>
-                            <strong>Clear state and validation</strong>
-                            <p>Forms provide inline errors, session state, and direct backend integration.</p>
+                        <div class="trust-chip">
+                            <span class="trust-label">Operations</span>
+                            <strong>Instant count visibility</strong>
                         </div>
                     </div>
                 </div>
 
-                <aside class="hero-panel glass-card">
-                    <div class="signal-card">
-                        <div class="signal-heading">
-                            <span class="signal-dot"></span>
-                            Product flow
+                <aside class="hero-dashboard shell-card shell-card-inner reveal">
+                    <div class="dashboard-heading">
+                        <div>
+                            <p class="eyebrow">Live board</p>
+                            <h2>Decision cockpit</h2>
                         </div>
-                        <div class="signal-grid">
-                            <div>
-                                <span>Step 1</span>
-                                <strong>Create account or sign in</strong>
-                            </div>
-                            <div>
-                                <span>Step 2</span>
-                                <strong>PrepWise loads your identity automatically</strong>
-                            </div>
-                            <div>
-                                <span>Step 3</span>
-                                <strong>Submit your meal plan for the day</strong>
-                            </div>
-                            <div>
-                                <span>Step 4</span>
-                                <strong>Check live attendance totals</strong>
-                            </div>
+                        <span class="dashboard-tag">Realtime feel</span>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <article class="dashboard-tile accent-tile">
+                            <span>Deadline</span>
+                            <strong id="deadlineDisplay">10:00 PM</strong>
+                            <p id="deadlineStatus">Voting window is open for today.</p>
+                        </article>
+                        <article class="dashboard-tile">
+                            <span>Today</span>
+                            <strong id="prettyToday">Loading...</strong>
+                            <p>Use one clean workflow for identity, vote, and reporting.</p>
+                        </article>
+                        <article class="dashboard-tile wide">
+                            <span>Flow</span>
+                            <strong>Login. Confirm. Coordinate.</strong>
+                            <p>Students submit confidently while admins see a polished snapshot of meal demand.</p>
+                        </article>
+                    </div>
+
+                    <div class="dashboard-rail">
+                        <div class="rail-line"></div>
+                        <div class="rail-step">
+                            <span>01</span>
+                            <strong>Authenticate once</strong>
+                        </div>
+                        <div class="rail-step">
+                            <span>02</span>
+                            <strong>Select attendance status</strong>
+                        </div>
+                        <div class="rail-step">
+                            <span>03</span>
+                            <strong>Monitor live totals</strong>
                         </div>
                     </div>
                 </aside>
             </section>
 
+            <section class="feature-ribbon reveal">
+                <article class="feature-card shell-card">
+                    <span class="feature-kicker">Signature</span>
+                    <h3>Confident visual hierarchy</h3>
+                    <p>Big headlines, layered cards, depth, and motion create a polished showcase instead of a basic form page.</p>
+                </article>
+                <article class="feature-card shell-card">
+                    <span class="feature-kicker">Workflow</span>
+                    <h3>Operationally useful interactions</h3>
+                    <p>Identity, voting, and count tracking stay connected so every action feels purposeful and fast.</p>
+                </article>
+                <article class="feature-card shell-card">
+                    <span class="feature-kicker">Experience</span>
+                    <h3>Dynamic and memorable polish</h3>
+                    <p>Animated background layers, deadline awareness, and live metrics make the interface feel premium.</p>
+                </article>
+            </section>
+
             <section class="workspace" id="authWorkspace">
-                <section class="panel panel-primary glass-card" id="auth-panel">
+                <section class="panel shell-card reveal" id="auth-panel">
                     <div class="panel-header">
                         <div>
                             <p class="eyebrow">Authentication</p>
-                            <h2>Login or create your account</h2>
+                            <h2>Enter the PrepWise workspace</h2>
                         </div>
                         <div class="panel-badge">Required before voting</div>
                     </div>
 
                     <p class="panel-intro">
-                        PrepWise uses your account identity for voting, so you only need to manage your meal choice and
-                        date after signing in.
+                        Your account connects every meal response to a verified identity, reducing duplicates and keeping
+                        daily planning dependable.
                     </p>
 
                     <div class="auth-tabs">
@@ -176,11 +220,11 @@
                     </form>
                 </section>
 
-                <aside class="panel panel-secondary glass-card account-panel" id="accountPanel">
+                <aside class="panel shell-card ambient-panel reveal" id="accountPanel">
                     <div class="panel-header">
                         <div>
                             <p class="eyebrow">Session</p>
-                            <h2>Your PrepWise account</h2>
+                            <h2>Your account identity</h2>
                         </div>
                         <div class="panel-badge panel-badge-secondary">Live state</div>
                     </div>
@@ -200,17 +244,24 @@
                         </div>
                     </div>
 
-                    <div class="ops-footnote">
-                        <strong>Why sign in?</strong>
-                        <p>Your vote is attached to your PrepWise account, so the system can prevent duplicates and keep
-                            daily records consistent.</p>
+                    <div class="insight-stack">
+                        <article class="insight-card">
+                            <span class="insight-label">Access mode</span>
+                            <strong>Secure identity-based entry</strong>
+                            <p>Every meal response is tied to a signed-in user for cleaner records and better accountability.</p>
+                        </article>
+                        <article class="insight-card">
+                            <span class="insight-label">Experience note</span>
+                            <strong>Built for presentation impact</strong>
+                            <p>We pair operational logic with a premium visual system so the product feels sharper in demos and judging rounds.</p>
+                        </article>
                     </div>
                 </aside>
             </section>
 
             <section id="appPanel" class="app-panel hidden">
-                <section class="workspace">
-                    <article class="panel panel-primary glass-card" id="vote-panel">
+                <section class="workspace app-workspace">
+                    <article class="panel shell-card reveal" id="vote-panel">
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">Student check-in</p>
@@ -220,7 +271,7 @@
                         </div>
 
                         <p class="panel-intro">
-                            Your account identity is already loaded. Select a date, choose your meal status, and submit.
+                            Your profile is loaded automatically. Choose a date, pick your attendance status, and confirm in seconds.
                         </p>
 
                         <div class="identity-strip">
@@ -231,6 +282,10 @@
                             <div class="identity-chip">
                                 <span>Name</span>
                                 <strong id="voteName">-</strong>
+                            </div>
+                            <div class="identity-chip accent-chip">
+                                <span>Selection</span>
+                                <strong id="statusPreview">Choose status</strong>
                             </div>
                         </div>
 
@@ -246,24 +301,25 @@
                                     <p class="eyebrow">Meal status</p>
                                     <p class="section-note">Choose whether you will eat on the selected date.</p>
                                 </div>
+                                <div class="mini-note" id="selectedDateLabel">Ready for today</div>
                             </div>
 
                             <div class="radio-group" id="statusGroup">
-                                <label class="radio-card">
+                                <label class="radio-card yes-card">
                                     <input type="radio" name="status" value="yes">
                                     <span class="radio-content">
                                         <span class="radio-kicker">Attending</span>
                                         <strong>Yes, include my meal</strong>
-                                        <small>Use this when you are planning to eat.</small>
+                                        <small>Reserve your place in the count so the kitchen can prepare accurately.</small>
                                     </span>
                                 </label>
 
-                                <label class="radio-card">
+                                <label class="radio-card no-card">
                                     <input type="radio" name="status" value="no">
                                     <span class="radio-content">
                                         <span class="radio-kicker">Skipping</span>
                                         <strong>No, I will not eat</strong>
-                                        <small>Use this to keep the daily count accurate.</small>
+                                        <small>Reduce waste and keep the daily plan precise when you are unavailable.</small>
                                     </span>
                                 </label>
                             </div>
@@ -277,21 +333,21 @@
                         <div id="result" class="result-toast"></div>
                     </article>
 
-                    <aside class="panel panel-secondary glass-card" id="ops-panel">
+                    <aside class="panel shell-card ambient-panel reveal" id="ops-panel">
                         <div class="panel-header">
                             <div>
                                 <p class="eyebrow">Operations desk</p>
-                                <h2>Check meal totals</h2>
+                                <h2>Track live meal demand</h2>
                             </div>
                             <div class="panel-badge panel-badge-secondary">Admin count view</div>
                         </div>
 
                         <p class="panel-intro">
-                            Select a date and pull the latest response totals for planning and kitchen coordination.
+                            Pull the latest totals for any date and get an immediate visual sense of attendance behavior.
                         </p>
 
                         <div class="ops-snapshot">
-                            <div class="snapshot-card">
+                            <div class="snapshot-card accent">
                                 <span class="snapshot-label">Selected date</span>
                                 <strong id="liveDate">Not loaded</strong>
                             </div>
@@ -304,10 +360,21 @@
                                     <span class="snapshot-label">No</span>
                                     <strong id="liveNo">0</strong>
                                 </div>
-                                <div class="snapshot-card accent">
+                                <div class="snapshot-card">
                                     <span class="snapshot-label">Total</span>
                                     <strong id="liveTotal">0</strong>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div class="count-visual">
+                            <div class="count-bar-track">
+                                <div id="yesBar" class="count-bar yes-bar"></div>
+                                <div id="noBar" class="count-bar no-bar"></div>
+                            </div>
+                            <div class="count-legend">
+                                <span><i class="legend-dot yes-dot"></i>Meal yes</span>
+                                <span><i class="legend-dot no-dot"></i>Meal no</span>
                             </div>
                         </div>
 
@@ -328,6 +395,6 @@
         </main>
     </div>
 
-    <script src="script.js?v=2.0"></script>
+    <script src="script.js?v=3.0"></script>
 </body>
 </html>

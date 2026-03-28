@@ -6,13 +6,75 @@ const API_BASE_URL =
 const STORAGE_KEY = "prepwise-session";
 const LOGIN_PATH = "/login";
 const APP_PATH = "/app";
+const VOTING_DEADLINE_HOUR = 22;
 
 let currentUser = null;
 let currentToken = null;
 let authMode = "login";
+let activeRequests = 0;
+let globalLoaderInterval;
 
 function getApiUrl(path) {
   return `${API_BASE_URL}${path}`;
+}
+
+function getElement(id) {
+  return document.getElementById(id);
+}
+
+function formatPrettyDate(dateString) {
+  const date = dateString ? new Date(`${dateString}T00:00:00`) : new Date();
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(date);
+}
+
+function updateSystemLabels(dateString) {
+  const systemDate = getElement("systemDate");
+  const prettyToday = getElement("prettyToday");
+  const selectedDateLabel = getElement("selectedDateLabel");
+  const todayPretty = formatPrettyDate();
+  const selectedPretty = formatPrettyDate(dateString);
+
+  if (systemDate) {
+    systemDate.innerText = todayPretty;
+  }
+
+  if (prettyToday) {
+    prettyToday.innerText = todayPretty;
+  }
+
+  if (selectedDateLabel) {
+    selectedDateLabel.innerText = `Selected: ${selectedPretty}`;
+  }
+}
+
+function updateDeadlineStatus() {
+  const deadlineDisplay = getElement("deadlineDisplay");
+  const deadlineStatus = getElement("deadlineStatus");
+  const now = new Date();
+  const deadline = new Date(now);
+  deadline.setHours(VOTING_DEADLINE_HOUR, 0, 0, 0);
+
+  if (deadlineDisplay) {
+    deadlineDisplay.innerText = "10:00 PM";
+  }
+
+  if (!deadlineStatus) {
+    return;
+  }
+
+  if (now <= deadline) {
+    const diffMs = deadline.getTime() - now.getTime();
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    deadlineStatus.innerText = `${hours}h ${minutes}m left before the server voting deadline.`;
+  } else {
+    deadlineStatus.innerText = "Voting closes after 10:00 PM server time. Late submissions are blocked.";
+  }
 }
 
 async function parseResponse(response) {
@@ -48,7 +110,7 @@ function resetClientSessionState() {
 }
 
 function togglePasswordVisibility(fieldId, button) {
-  const input = document.getElementById(fieldId);
+  const input = getElement(fieldId);
 
   if (!input) {
     return;
@@ -76,8 +138,8 @@ function redirectTo(path) {
 }
 
 function setFieldError(fieldId, message) {
-  const input = document.getElementById(fieldId);
-  const error = document.getElementById(`${fieldId}Error`);
+  const input = getElement(fieldId);
+  const error = getElement(`${fieldId}Error`);
 
   if (input) {
     input.classList.toggle("invalid", Boolean(message));
@@ -89,8 +151,8 @@ function setFieldError(fieldId, message) {
 }
 
 function setStatusError(message) {
-  const statusGroup = document.getElementById("statusGroup");
-  const error = document.getElementById("statusError");
+  const statusGroup = getElement("statusGroup");
+  const error = getElement("statusError");
 
   if (statusGroup) {
     statusGroup.classList.toggle("invalid", Boolean(message));
@@ -124,8 +186,8 @@ function clearCountErrors() {
 function validateLoginForm() {
   clearAuthErrors();
 
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value.trim();
+  const email = getElement("loginEmail").value.trim();
+  const password = getElement("loginPassword").value.trim();
   let isValid = true;
 
   if (!email) {
@@ -144,10 +206,10 @@ function validateLoginForm() {
 function validateSignupForm() {
   clearAuthErrors();
 
-  const userId = document.getElementById("signupUserId").value.trim();
-  const name = document.getElementById("signupName").value.trim();
-  const email = document.getElementById("signupEmail").value.trim();
-  const password = document.getElementById("signupPassword").value;
+  const userId = getElement("signupUserId").value.trim();
+  const name = getElement("signupName").value.trim();
+  const email = getElement("signupEmail").value.trim();
+  const password = getElement("signupPassword").value;
   let isValid = true;
 
   if (!userId) {
@@ -176,7 +238,7 @@ function validateSignupForm() {
 function validateVoteForm() {
   clearVoteErrors();
 
-  const date = document.getElementById("date").value;
+  const date = getElement("date").value;
   const statusNode = document.querySelector('input[name="status"]:checked');
   let isValid = true;
 
@@ -195,7 +257,7 @@ function validateVoteForm() {
 
 function validateCountForm() {
   clearCountErrors();
-  const countDate = document.getElementById("countDate").value;
+  const countDate = getElement("countDate").value;
 
   if (!countDate) {
     setFieldError("countDate", "Please select a reporting date.");
@@ -206,7 +268,7 @@ function validateCountForm() {
 }
 
 function showToast(elementId, message, type) {
-  const resultDiv = document.getElementById(elementId);
+  const resultDiv = getElement(elementId);
 
   if (!resultDiv) {
     return;
@@ -223,20 +285,36 @@ function showToast(elementId, message, type) {
 function switchAuthMode(mode) {
   authMode = mode;
 
-  document.getElementById("loginTab").classList.toggle("active", mode === "login");
-  document.getElementById("signupTab").classList.toggle("active", mode === "signup");
-  document.getElementById("loginForm").classList.toggle("hidden", mode !== "login");
-  document.getElementById("signupForm").classList.toggle("hidden", mode !== "signup");
+  getElement("loginTab").classList.toggle("active", mode === "login");
+  getElement("signupTab").classList.toggle("active", mode === "signup");
+  getElement("loginForm").classList.toggle("hidden", mode !== "login");
+  getElement("signupForm").classList.toggle("hidden", mode !== "signup");
+}
+
+function updateCountBars(yesCount = 0, noCount = 0) {
+  const yesBar = getElement("yesBar");
+  const noBar = getElement("noBar");
+  const total = yesCount + noCount;
+  const yesWidth = total ? Math.max((yesCount / total) * 100, yesCount ? 12 : 0) : 0;
+  const noWidth = total ? Math.max((noCount / total) * 100, noCount ? 12 : 0) : 0;
+
+  if (yesBar) {
+    yesBar.style.width = `${yesWidth}%`;
+  }
+
+  if (noBar) {
+    noBar.style.width = `${noWidth}%`;
+  }
 }
 
 function updateSnapshot(data) {
-  const liveDate = document.getElementById("liveDate");
-  const liveYes = document.getElementById("liveYes");
-  const liveNo = document.getElementById("liveNo");
-  const liveTotal = document.getElementById("liveTotal");
+  const liveDate = getElement("liveDate");
+  const liveYes = getElement("liveYes");
+  const liveNo = getElement("liveNo");
+  const liveTotal = getElement("liveTotal");
 
   if (liveDate) {
-    liveDate.innerText = data.date || "Not loaded";
+    liveDate.innerText = data.date ? formatPrettyDate(data.date) : "Not loaded";
   }
 
   if (liveYes) {
@@ -250,6 +328,24 @@ function updateSnapshot(data) {
   if (liveTotal) {
     liveTotal.innerText = String(data.total ?? 0);
   }
+
+  updateCountBars(data.yes ?? 0, data.no ?? 0);
+}
+
+function updateStatusPreview() {
+  const selected = document.querySelector('input[name="status"]:checked');
+  const preview = getElement("statusPreview");
+
+  if (!preview) {
+    return;
+  }
+
+  if (!selected) {
+    preview.innerText = "Choose status";
+    return;
+  }
+
+  preview.innerText = selected.value === "yes" ? "Meal included" : "Skipping meal";
 }
 
 function renderSession(user, token) {
@@ -259,19 +355,32 @@ function renderSession(user, token) {
   const isAuthenticated = Boolean(user && token);
   const onLoginPage = window.location.pathname === LOGIN_PATH;
   const onAppPage = window.location.pathname === APP_PATH;
+  const authStatus = getElement("authStatus");
+  const logoutBtn = getElement("logoutBtn");
+  const authWorkspace = getElement("authWorkspace");
+  const appPanel = getElement("appPanel");
 
-  document.getElementById("authStatus").innerText = isAuthenticated
-    ? `Signed in as ${user.name}`
-    : "Not signed in";
-  document.getElementById("logoutBtn").classList.toggle("hidden", !isAuthenticated);
-  document.getElementById("authWorkspace").classList.toggle("hidden", isAuthenticated && onAppPage);
-  document.getElementById("appPanel").classList.toggle("hidden", !(isAuthenticated && onAppPage));
+  if (authStatus) {
+    authStatus.innerText = isAuthenticated ? `Signed in as ${user.name}` : "Not signed in";
+  }
 
-  document.getElementById("accountUserId").innerText = isAuthenticated ? user.userId : "Not signed in";
-  document.getElementById("accountName").innerText = isAuthenticated ? user.name : "-";
-  document.getElementById("accountEmail").innerText = isAuthenticated ? user.email : "-";
-  document.getElementById("voteUserId").innerText = isAuthenticated ? user.userId : "-";
-  document.getElementById("voteName").innerText = isAuthenticated ? user.name : "-";
+  if (logoutBtn) {
+    logoutBtn.classList.toggle("hidden", !isAuthenticated);
+  }
+
+  if (authWorkspace) {
+    authWorkspace.classList.toggle("hidden", isAuthenticated && onAppPage);
+  }
+
+  if (appPanel) {
+    appPanel.classList.toggle("hidden", !(isAuthenticated && onAppPage));
+  }
+
+  getElement("accountUserId").innerText = isAuthenticated ? user.userId : "Not signed in";
+  getElement("accountName").innerText = isAuthenticated ? user.name : "-";
+  getElement("accountEmail").innerText = isAuthenticated ? user.email : "-";
+  getElement("voteUserId").innerText = isAuthenticated ? user.userId : "-";
+  getElement("voteName").innerText = isAuthenticated ? user.name : "-";
 
   if (isAuthenticated && onLoginPage) {
     redirectTo(APP_PATH);
@@ -283,12 +392,10 @@ function renderSession(user, token) {
   }
 }
 
-let activeRequests = 0;
-let globalLoaderInterval;
-
 function showGlobalLoader() {
-  activeRequests++;
-  let loader = document.getElementById("global-loader");
+  activeRequests += 1;
+  let loader = getElement("global-loader");
+
   if (!loader) {
     loader = document.createElement("div");
     loader.id = "global-loader";
@@ -297,25 +404,25 @@ function showGlobalLoader() {
       top: "0",
       left: "0",
       height: "4px",
-      background: "linear-gradient(90deg, var(--accent), var(--teal))",
+      background: "linear-gradient(90deg, #5ffbf1, #ffd66b, #726bff)",
       zIndex: "9999",
       transition: "width 0.4s ease, opacity 0.4s ease",
       width: "0%",
       opacity: "1",
-      boxShadow: "0 0 10px rgba(29, 110, 105, 0.5)",
+      boxShadow: "0 0 12px rgba(95, 251, 241, 0.45)",
       pointerEvents: "none"
     });
     document.body.appendChild(loader);
   }
-  
+
   if (activeRequests === 1) {
     loader.style.opacity = "1";
     loader.style.width = "20%";
     clearInterval(globalLoaderInterval);
     globalLoaderInterval = setInterval(() => {
-      let currentWidth = parseFloat(loader.style.width);
+      const currentWidth = parseFloat(loader.style.width);
       if (currentWidth < 90) {
-        loader.style.width = currentWidth + (95 - currentWidth) * 0.05 + "%";
+        loader.style.width = `${currentWidth + (95 - currentWidth) * 0.05}%`;
       }
     }, 200);
   }
@@ -323,23 +430,27 @@ function showGlobalLoader() {
 
 function hideGlobalLoader() {
   activeRequests = Math.max(0, activeRequests - 1);
+
   if (activeRequests === 0) {
-    let loader = document.getElementById("global-loader");
-    if (loader) {
-      clearInterval(globalLoaderInterval);
-      loader.style.width = "100%";
-      setTimeout(() => {
-        loader.style.opacity = "0";
-        setTimeout(() => {
-          loader.style.width = "0%";
-        }, 400);
-      }, 300);
+    const loader = getElement("global-loader");
+    if (!loader) {
+      return;
     }
+
+    clearInterval(globalLoaderInterval);
+    loader.style.width = "100%";
+    setTimeout(() => {
+      loader.style.opacity = "0";
+      setTimeout(() => {
+        loader.style.width = "0%";
+      }, 400);
+    }, 300);
   }
 }
 
 async function requestJson(path, options = {}) {
   showGlobalLoader();
+
   try {
     const response = await fetch(getApiUrl(path), options);
     const data = await parseResponse(response);
@@ -362,7 +473,7 @@ async function handleSignup(event) {
     return;
   }
 
-  const button = document.getElementById("signupBtn");
+  const button = getElement("signupBtn");
   const originalText = button.innerHTML;
   button.innerHTML = '<div class="spinner"></div> Creating...';
   button.disabled = true;
@@ -374,16 +485,17 @@ async function handleSignup(event) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        userId: document.getElementById("signupUserId").value.trim(),
-        name: document.getElementById("signupName").value.trim(),
-        email: document.getElementById("signupEmail").value.trim(),
-        password: document.getElementById("signupPassword").value
+        userId: getElement("signupUserId").value.trim(),
+        name: getElement("signupName").value.trim(),
+        email: getElement("signupEmail").value.trim(),
+        password: getElement("signupPassword").value
       })
     });
 
     saveSession({ token: result.token, user: result.user });
     renderSession(result.user, result.token);
-    document.getElementById("signupForm").reset();
+    getElement("signupForm").reset();
+    updateStatusPreview();
     showToast("signupResult", result.message, "success");
     redirectTo(APP_PATH);
   } catch (error) {
@@ -402,7 +514,7 @@ async function handleLogin(event) {
     return;
   }
 
-  const button = document.getElementById("loginBtn");
+  const button = getElement("loginBtn");
   const originalText = button.innerHTML;
   button.innerHTML = '<div class="spinner"></div> Logging in...';
   button.disabled = true;
@@ -414,14 +526,15 @@ async function handleLogin(event) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        email: document.getElementById("loginEmail").value.trim(),
-        password: document.getElementById("loginPassword").value
+        email: getElement("loginEmail").value.trim(),
+        password: getElement("loginPassword").value
       })
     });
 
     saveSession({ token: result.token, user: result.user });
     renderSession(result.user, result.token);
-    document.getElementById("loginForm").reset();
+    getElement("loginForm").reset();
+    updateStatusPreview();
     showToast("loginResult", result.message, "success");
     redirectTo(APP_PATH);
   } catch (error) {
@@ -438,16 +551,11 @@ function logoutUser() {
   document.querySelectorAll('input[name="status"]').forEach((input) => {
     input.checked = false;
   });
+  updateStatusPreview();
   redirectTo(LOGIN_PATH);
 }
 
 async function restoreSession() {
-  if (window.location.pathname === LOGIN_PATH) {
-    resetClientSessionState();
-    renderSession(null, null);
-    return;
-  }
-
   const session = getSession();
 
   if (!session?.token || !session?.user) {
@@ -455,9 +563,9 @@ async function restoreSession() {
     return;
   }
 
-  const authStatus = document.getElementById("authStatus");
+  const authStatus = getElement("authStatus");
   if (authStatus) {
-    authStatus.innerHTML = '<span class="spinner" style="border-width: 2px; border-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.15) #fff rgba(255, 255, 255, 0.15); display: inline-block; vertical-align: middle; width: 14px; height: 14px; margin-right: 6px;"></span> Restoring session...';
+    authStatus.innerHTML = '<span class="spinner" style="border-width:2px;width:14px;height:14px;margin-right:8px;"></span>Restoring session...';
   }
 
   try {
@@ -489,7 +597,7 @@ async function submitVote() {
     return;
   }
 
-  const submitBtn = document.getElementById("submitBtn");
+  const submitBtn = getElement("submitBtn");
   const originalText = submitBtn.innerHTML;
   submitBtn.innerHTML = '<div class="spinner"></div> Submitting...';
   submitBtn.disabled = true;
@@ -502,7 +610,7 @@ async function submitVote() {
         Authorization: `Bearer ${currentToken}`
       },
       body: JSON.stringify({
-        date: document.getElementById("date").value,
+        date: getElement("date").value,
         status: document.querySelector('input[name="status"]:checked')?.value || null
       })
     });
@@ -511,6 +619,7 @@ async function submitVote() {
     document.querySelectorAll('input[name="status"]').forEach((input) => {
       input.checked = false;
     });
+    updateStatusPreview();
     showToast("result", result.message, "success");
   } catch (error) {
     showToast("result", error.message, "error");
@@ -526,13 +635,13 @@ async function getCount() {
     return;
   }
 
-  const countBtn = document.getElementById("countBtn");
+  const countBtn = getElement("countBtn");
   const originalText = countBtn.innerHTML;
   countBtn.innerHTML = '<div class="spinner"></div> Loading...';
   countBtn.disabled = true;
 
   try {
-    const date = document.getElementById("countDate").value;
+    const date = getElement("countDate").value;
     const result = await requestJson(`/count/${date}`);
     updateSnapshot(result);
     showToast("countResult", `Yes: ${result.yes} | No: ${result.no} | Total: ${result.total}`, "success");
@@ -546,8 +655,8 @@ async function getCount() {
 
 function initializeDates() {
   const today = new Date().toISOString().split("T")[0];
-  const voteDateInput = document.getElementById("date");
-  const countDateInput = document.getElementById("countDate");
+  const voteDateInput = getElement("date");
+  const countDateInput = getElement("countDate");
 
   if (voteDateInput && !voteDateInput.value) {
     voteDateInput.value = today;
@@ -555,8 +664,10 @@ function initializeDates() {
 
   if (countDateInput && !countDateInput.value) {
     countDateInput.value = today;
-    updateSnapshot({ date: today, yes: 0, no: 0, total: 0 });
   }
+
+  updateSystemLabels(today);
+  updateSnapshot({ date: today, yes: 0, no: 0, total: 0 });
 }
 
 function attachFieldListeners() {
@@ -570,7 +681,7 @@ function attachFieldListeners() {
     "date",
     "countDate"
   ].forEach((fieldId) => {
-    const element = document.getElementById(fieldId);
+    const element = getElement(fieldId);
 
     if (!element) {
       return;
@@ -580,15 +691,48 @@ function attachFieldListeners() {
     element.addEventListener("change", () => setFieldError(fieldId, ""));
   });
 
+  const voteDateInput = getElement("date");
+  const countDateInput = getElement("countDate");
+
+  if (voteDateInput) {
+    voteDateInput.addEventListener("change", () => {
+      updateSystemLabels(voteDateInput.value);
+    });
+  }
+
+  if (countDateInput) {
+    countDateInput.addEventListener("change", () => {
+      const chosenDate = countDateInput.value;
+      if (chosenDate) {
+        updateSnapshot({
+          date: chosenDate,
+          yes: Number(getElement("liveYes")?.innerText || 0),
+          no: Number(getElement("liveNo")?.innerText || 0),
+          total: Number(getElement("liveTotal")?.innerText || 0)
+        });
+      }
+    });
+  }
+
   document.querySelectorAll('input[name="status"]').forEach((input) => {
-    input.addEventListener("change", () => setStatusError(""));
+    input.addEventListener("change", () => {
+      setStatusError("");
+      updateStatusPreview();
+    });
   });
 }
 
-document.getElementById("loginForm").addEventListener("submit", handleLogin);
-document.getElementById("signupForm").addEventListener("submit", handleSignup);
+function startDeadlineClock() {
+  updateDeadlineStatus();
+  setInterval(updateDeadlineStatus, 60000);
+}
+
+getElement("loginForm").addEventListener("submit", handleLogin);
+getElement("signupForm").addEventListener("submit", handleSignup);
 
 switchAuthMode(authMode);
 initializeDates();
 attachFieldListeners();
+updateStatusPreview();
+startDeadlineClock();
 restoreSession();
