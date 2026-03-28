@@ -1,5 +1,7 @@
 # PrepWise
 
+**[👉 Live Demo](#)** *(Replace # with your actual demo link)*
+
 Smart meal planning and attendance optimization for messes and hostels.
 
 ## Overview
@@ -181,16 +183,17 @@ The server will redirect users to the login page and serve the frontend directly
 
 ## Screenshots
 
-Add screenshots to showcase the UI and workflow.
+### Login Page
+![Login Page](docs/screenshots/image1.png)
 
-Suggested screenshots:
+### Signup Page
+![Signup Page](docs/screenshots/image2.png)
 
-- Login page
-- Signup page
-- Meal voting dashboard
-- Count tracking panel
+### Meal Voting Dashboard
+![Meal Voting Dashboard](docs/screenshots/image3.png)
 
-You can place images in a folder such as `docs/screenshots/` and reference them here later.
+### Count Tracking Panel
+![Count Tracking Panel](docs/screenshots/image4.png)
 
 ## Future Improvements
 
