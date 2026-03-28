@@ -457,7 +457,7 @@ async function restoreSession() {
 
   const authStatus = document.getElementById("authStatus");
   if (authStatus) {
-    authStatus.innerHTML = '<span class="spinner" style="border-width: 2px; border-color: rgba(19, 33, 45, 0.2) rgba(19, 33, 45, 0.2) var(--ink) rgba(19, 33, 45, 0.2); display: inline-block; vertical-align: middle; width: 14px; height: 14px; margin-right: 6px;"></span> Restoring session...';
+    authStatus.innerHTML = '<span class="spinner" style="border-width: 2px; border-color: rgba(255, 255, 255, 0.15) rgba(255, 255, 255, 0.15) #fff rgba(255, 255, 255, 0.15); display: inline-block; vertical-align: middle; width: 14px; height: 14px; margin-right: 6px;"></span> Restoring session...';
   }
 
   try {
