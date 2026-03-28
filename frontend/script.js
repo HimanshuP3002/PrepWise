@@ -283,15 +283,75 @@ function renderSession(user, token) {
   }
 }
 
-async function requestJson(path, options = {}) {
-  const response = await fetch(getApiUrl(path), options);
-  const data = await parseResponse(response);
+let activeRequests = 0;
+let globalLoaderInterval;
 
-  if (!response.ok) {
-    throw new Error(data.error || "Something went wrong.");
+function showGlobalLoader() {
+  activeRequests++;
+  let loader = document.getElementById("global-loader");
+  if (!loader) {
+    loader = document.createElement("div");
+    loader.id = "global-loader";
+    Object.assign(loader.style, {
+      position: "fixed",
+      top: "0",
+      left: "0",
+      height: "4px",
+      background: "linear-gradient(90deg, var(--accent), var(--teal))",
+      zIndex: "9999",
+      transition: "width 0.4s ease, opacity 0.4s ease",
+      width: "0%",
+      opacity: "1",
+      boxShadow: "0 0 10px rgba(29, 110, 105, 0.5)",
+      pointerEvents: "none"
+    });
+    document.body.appendChild(loader);
   }
+  
+  if (activeRequests === 1) {
+    loader.style.opacity = "1";
+    loader.style.width = "20%";
+    clearInterval(globalLoaderInterval);
+    globalLoaderInterval = setInterval(() => {
+      let currentWidth = parseFloat(loader.style.width);
+      if (currentWidth < 90) {
+        loader.style.width = currentWidth + (95 - currentWidth) * 0.05 + "%";
+      }
+    }, 200);
+  }
+}
 
-  return data;
+function hideGlobalLoader() {
+  activeRequests = Math.max(0, activeRequests - 1);
+  if (activeRequests === 0) {
+    let loader = document.getElementById("global-loader");
+    if (loader) {
+      clearInterval(globalLoaderInterval);
+      loader.style.width = "100%";
+      setTimeout(() => {
+        loader.style.opacity = "0";
+        setTimeout(() => {
+          loader.style.width = "0%";
+        }, 400);
+      }, 300);
+    }
+  }
+}
+
+async function requestJson(path, options = {}) {
+  showGlobalLoader();
+  try {
+    const response = await fetch(getApiUrl(path), options);
+    const data = await parseResponse(response);
+
+    if (!response.ok) {
+      throw new Error(data.error || "Something went wrong.");
+    }
+
+    return data;
+  } finally {
+    hideGlobalLoader();
+  }
 }
 
 async function handleSignup(event) {
@@ -393,6 +453,11 @@ async function restoreSession() {
   if (!session?.token || !session?.user) {
     renderSession(null, null);
     return;
+  }
+
+  const authStatus = document.getElementById("authStatus");
+  if (authStatus) {
+    authStatus.innerHTML = '<span class="spinner" style="border-width: 2px; border-color: rgba(19, 33, 45, 0.2) rgba(19, 33, 45, 0.2) var(--ink) rgba(19, 33, 45, 0.2); display: inline-block; vertical-align: middle; width: 14px; height: 14px; margin-right: 6px;"></span> Restoring session...';
   }
 
   try {
