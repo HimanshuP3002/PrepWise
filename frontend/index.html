@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=3.0">
 </head>
-<body>
+<body data-theme="dark">
     <div class="scene-backdrop">
         <div class="noise-layer"></div>
         <div class="grid-layer"></div>
@@ -36,6 +36,10 @@
                     <span class="status-pulse"></span>
                     <span id="systemDate">Loading date</span>
                 </div>
+                <button id="themeToggle" class="theme-toggle" type="button" aria-label="Switch to light mode" onclick="toggleTheme()">
+                    <span class="material-symbols-outlined theme-icon" aria-hidden="true">dark_mode</span>
+                    <span id="themeToggleLabel">Dark mode</span>
+                </button>
                 <span id="authStatus" class="auth-status">Not signed in</span>
                 <button id="logoutBtn" class="ghost-btn hidden" type="button" onclick="logoutUser()">Logout</button>
             </div>

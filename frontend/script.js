@@ -4,6 +4,7 @@ const API_BASE_URL =
     : "http://localhost:5000";
 
 const STORAGE_KEY = "prepwise-session";
+const THEME_STORAGE_KEY = "prepwise-theme";
 const LOGIN_PATH = "/login";
 const APP_PATH = "/app";
 const VOTING_DEADLINE_HOUR = 22;
@@ -20,6 +21,61 @@ function getApiUrl(path) {
 
 function getElement(id) {
   return document.getElementById(id);
+}
+
+function getStoredTheme() {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY);
+  } catch (error) {
+    return null;
+  }
+}
+
+function saveTheme(theme) {
+  localStorage.setItem(THEME_STORAGE_KEY, theme);
+}
+
+function applyTheme(theme) {
+  const normalizedTheme = theme === "light" ? "light" : "dark";
+  const body = document.body;
+  const themeToggle = getElement("themeToggle");
+  const themeToggleLabel = getElement("themeToggleLabel");
+  const themeIcon = themeToggle?.querySelector(".theme-icon");
+
+  if (!body) {
+    return;
+  }
+
+  body.setAttribute("data-theme", normalizedTheme);
+
+  if (themeToggle) {
+    themeToggle.setAttribute(
+      "aria-label",
+      normalizedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+    );
+  }
+
+  if (themeToggleLabel) {
+    themeToggleLabel.innerText = normalizedTheme === "dark" ? "Dark mode" : "Light mode";
+  }
+
+  if (themeIcon) {
+    themeIcon.innerText = normalizedTheme === "dark" ? "dark_mode" : "light_mode";
+  }
+}
+
+function initializeTheme() {
+  const storedTheme = getStoredTheme();
+  const systemPrefersLight = window.matchMedia?.("(prefers-color-scheme: light)")?.matches;
+  const initialTheme = storedTheme || (systemPrefersLight ? "light" : "dark");
+  applyTheme(initialTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.body.getAttribute("data-theme") === "light" ? "light" : "dark";
+  const nextTheme = currentTheme === "dark" ? "light" : "dark";
+  applyTheme(nextTheme);
+  saveTheme(nextTheme);
 }
 
 function formatPrettyDate(dateString) {
@@ -731,6 +787,7 @@ getElement("loginForm").addEventListener("submit", handleLogin);
 getElement("signupForm").addEventListener("submit", handleSignup);
 
 switchAuthMode(authMode);
+initializeTheme();
 initializeDates();
 attachFieldListeners();
 updateStatusPreview();
