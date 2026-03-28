@@ -1,6 +1,6 @@
 # PrepWise
 
-**[👉 Live Demo](#)** *(Replace # with your actual demo link)*
+**[👉 Live Demo]** *(https://prepwise-v0gk.onrender.com/)*
 
 Smart meal planning and attendance optimization for messes and hostels.
 
