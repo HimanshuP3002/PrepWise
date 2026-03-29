@@ -1,9 +1,11 @@
+import logo from "../../assets/prepwise-logo.png";
+
 export default function Header({ title, subtitle, userLabel, onLogout }) {
   return (
     <header className="topbar">
       <div className="brand">
         <span className="brand-mark">
-          <img src="/assets/prepwise-logo.png" alt="PrepWise logo" />
+          <img src={logo} alt="PrepWise logo" />
         </span>
         <span className="brand-copy">
           <strong>{title}</strong>

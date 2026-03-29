@@ -182,6 +182,7 @@ For deployment:
 
 - Set `ALLOWED_ORIGINS` to your live frontend origin if you serve the frontend from a different domain.
 - If the frontend is served by the same Express app, the login page will continue to work without extra frontend changes.
+- The backend now builds the React frontend before startup, so your deployment should serve `frontend/dist` automatically.
 
 ### 4. Run the Backend Server
 
