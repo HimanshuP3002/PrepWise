@@ -14,6 +14,7 @@ let currentToken = null;
 let authMode = "login";
 let activeRequests = 0;
 let globalLoaderInterval;
+let analyticsChart = null;
 
 function getApiUrl(path) {
   return `${API_BASE_URL}${path}`;
@@ -76,6 +77,7 @@ function toggleTheme() {
   const nextTheme = currentTheme === "dark" ? "light" : "dark";
   applyTheme(nextTheme);
   saveTheme(nextTheme);
+  renderAnalyticsChart(getLastAnalyticsData());
 }
 
 function formatPrettyDate(dateString) {
@@ -92,6 +94,7 @@ function updateSystemLabels(dateString) {
   const systemDate = getElement("systemDate");
   const prettyToday = getElement("prettyToday");
   const selectedDateLabel = getElement("selectedDateLabel");
+  const appTodayDate = getElement("appTodayDate");
   const todayPretty = formatPrettyDate();
   const selectedPretty = formatPrettyDate(dateString);
 
@@ -103,6 +106,10 @@ function updateSystemLabels(dateString) {
     prettyToday.innerText = todayPretty;
   }
 
+  if (appTodayDate) {
+    appTodayDate.innerText = todayPretty;
+  }
+
   if (selectedDateLabel) {
     selectedDateLabel.innerText = `Selected: ${selectedPretty}`;
   }
@@ -111,6 +118,7 @@ function updateSystemLabels(dateString) {
 function updateDeadlineStatus() {
   const deadlineDisplay = getElement("deadlineDisplay");
   const deadlineStatus = getElement("deadlineStatus");
+  const appDeadlineSummary = getElement("appDeadlineSummary");
   const now = new Date();
   const deadline = new Date(now);
   deadline.setHours(VOTING_DEADLINE_HOUR, 0, 0, 0);
@@ -127,9 +135,19 @@ function updateDeadlineStatus() {
     const diffMs = deadline.getTime() - now.getTime();
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    deadlineStatus.innerText = `${hours}h ${minutes}m left before the server voting deadline.`;
+    const openMessage = `${hours}h ${minutes}m left before the server voting deadline.`;
+    deadlineStatus.innerText = openMessage;
+
+    if (appDeadlineSummary) {
+      appDeadlineSummary.innerText = openMessage;
+    }
   } else {
-    deadlineStatus.innerText = "Voting closes after 10:00 PM server time. Late submissions are blocked.";
+    const closedMessage = "Voting closes after 10:00 PM server time. Late submissions are blocked.";
+    deadlineStatus.innerText = closedMessage;
+
+    if (appDeadlineSummary) {
+      appDeadlineSummary.innerText = closedMessage;
+    }
   }
 }
 
@@ -388,6 +406,213 @@ function updateSnapshot(data) {
   updateCountBars(data.yes ?? 0, data.no ?? 0);
 }
 
+function setAnalyticsStatus(message, isError = false) {
+  const status = getElement("analyticsStatus");
+
+  if (!status) {
+    return;
+  }
+
+  status.innerText = message;
+  status.classList.toggle("error-text", Boolean(isError));
+}
+
+function saveLastAnalyticsData(data) {
+  window.__prepwiseAnalyticsData = Array.isArray(data) ? data : [];
+}
+
+function getLastAnalyticsData() {
+  return Array.isArray(window.__prepwiseAnalyticsData) ? window.__prepwiseAnalyticsData : [];
+}
+
+function updateAnalyticsSummary(data) {
+  const datesTracked = getElement("analyticsDatesTracked");
+  const highestYes = getElement("analyticsHighestYes");
+  const latestTotal = getElement("analyticsLatestTotal");
+  const appAnalyticsSummary = getElement("appAnalyticsSummary");
+  const highestYesValue = data.reduce((max, entry) => Math.max(max, entry.yes || 0), 0);
+  const latestEntry = data[data.length - 1];
+
+  if (datesTracked) {
+    datesTracked.innerText = String(data.length);
+  }
+
+  if (highestYes) {
+    highestYes.innerText = String(highestYesValue);
+  }
+
+  if (latestTotal) {
+    latestTotal.innerText = latestEntry ? String((latestEntry.yes || 0) + (latestEntry.no || 0)) : "0";
+  }
+
+  if (appAnalyticsSummary) {
+    appAnalyticsSummary.innerText = data.length
+      ? `${data.length} tracked day${data.length === 1 ? "" : "s"}`
+      : "Waiting for data";
+  }
+}
+
+function toggleAnalyticsEmptyState(hasData) {
+  const chartCanvas = getElement("analyticsChart");
+  const emptyState = getElement("analyticsEmptyState");
+
+  if (chartCanvas) {
+    chartCanvas.classList.toggle("hidden", !hasData);
+  }
+
+  if (emptyState) {
+    emptyState.classList.toggle("hidden", hasData);
+  }
+}
+
+function setAnalyticsEmptyStateMessage(message) {
+  const emptyState = getElement("analyticsEmptyState");
+
+  if (emptyState) {
+    emptyState.innerText = message;
+  }
+}
+
+function getThemeChartPalette() {
+  const styles = getComputedStyle(document.body);
+
+  return {
+    text: styles.getPropertyValue("--text-soft").trim() || "#94a3b8",
+    grid: styles.getPropertyValue("--line").trim() || "rgba(148, 163, 184, 0.2)",
+    yesLine: styles.getPropertyValue("--success").trim() || "#169d60",
+    yesFill: "rgba(22, 157, 96, 0.14)",
+    noLine: styles.getPropertyValue("--cyan").trim() || "#0fb7bf",
+    noFill: "rgba(15, 183, 191, 0.12)"
+  };
+}
+
+function buildAnalyticsChartConfig(data) {
+  const palette = getThemeChartPalette();
+
+  return {
+    type: "line",
+    data: {
+      labels: data.map((entry) => formatPrettyDate(entry.date)),
+      datasets: [
+        {
+          label: "Yes votes",
+          data: data.map((entry) => entry.yes || 0),
+          borderColor: palette.yesLine,
+          backgroundColor: palette.yesFill,
+          fill: true,
+          tension: 0.32,
+          borderWidth: 3,
+          pointRadius: 3,
+          pointHoverRadius: 5
+        },
+        {
+          label: "No votes",
+          data: data.map((entry) => entry.no || 0),
+          borderColor: palette.noLine,
+          backgroundColor: palette.noFill,
+          fill: true,
+          tension: 0.32,
+          borderWidth: 3,
+          pointRadius: 3,
+          pointHoverRadius: 5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: "index",
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          labels: {
+            color: palette.text,
+            usePointStyle: true,
+            boxWidth: 10,
+            boxHeight: 10,
+            padding: 18
+          }
+        },
+        tooltip: {
+          backgroundColor: "rgba(7, 18, 30, 0.92)",
+          titleColor: "#ffffff",
+          bodyColor: "#dbeafe",
+          borderColor: "rgba(255, 255, 255, 0.08)",
+          borderWidth: 1,
+          padding: 12
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: palette.text,
+            maxRotation: 0,
+            autoSkip: true
+          },
+          grid: {
+            color: "transparent"
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            color: palette.text,
+            precision: 0
+          },
+          grid: {
+            color: palette.grid
+          }
+        }
+      }
+    }
+  };
+}
+
+function renderAnalyticsChart(data) {
+  saveLastAnalyticsData(data);
+  updateAnalyticsSummary(data);
+
+  const chartCanvas = getElement("analyticsChart");
+
+  if (!chartCanvas) {
+    return;
+  }
+
+  if (!window.Chart) {
+    toggleAnalyticsEmptyState(false);
+    setAnalyticsEmptyStateMessage("Analytics data loaded, but the chart library is unavailable right now.");
+
+    if (analyticsChart) {
+      analyticsChart.destroy();
+      analyticsChart = null;
+    }
+    return;
+  }
+
+  if (data.length === 0) {
+    toggleAnalyticsEmptyState(false);
+    setAnalyticsEmptyStateMessage("No analytics data yet. Submit a few votes to unlock trend insights.");
+
+    if (analyticsChart) {
+      analyticsChart.destroy();
+      analyticsChart = null;
+    }
+    return;
+  }
+
+  toggleAnalyticsEmptyState(true);
+
+  const config = buildAnalyticsChartConfig(data);
+
+  if (analyticsChart) {
+    analyticsChart.destroy();
+  }
+
+  analyticsChart = new Chart(chartCanvas, config);
+}
+
 function updateStatusPreview() {
   const selected = document.querySelector('input[name="status"]:checked');
   const preview = getElement("statusPreview");
@@ -415,6 +640,10 @@ function renderSession(user, token) {
   const logoutBtn = getElement("logoutBtn");
   const authWorkspace = getElement("authWorkspace");
   const appPanel = getElement("appPanel");
+  const heroPanel = document.querySelector(".hero-panel");
+  const featureRibbon = document.querySelector(".feature-ribbon");
+  const appWelcomeName = getElement("appWelcomeName");
+  const appWelcomeMeta = getElement("appWelcomeMeta");
 
   if (authStatus) {
     authStatus.innerText = isAuthenticated ? `Signed in as ${user.name}` : "Not signed in";
@@ -432,11 +661,29 @@ function renderSession(user, token) {
     appPanel.classList.toggle("hidden", !(isAuthenticated && onAppPage));
   }
 
+  if (heroPanel) {
+    heroPanel.classList.toggle("hidden", isAuthenticated && onAppPage);
+  }
+
+  if (featureRibbon) {
+    featureRibbon.classList.toggle("hidden", isAuthenticated && onAppPage);
+  }
+
   getElement("accountUserId").innerText = isAuthenticated ? user.userId : "Not signed in";
   getElement("accountName").innerText = isAuthenticated ? user.name : "-";
   getElement("accountEmail").innerText = isAuthenticated ? user.email : "-";
   getElement("voteUserId").innerText = isAuthenticated ? user.userId : "-";
   getElement("voteName").innerText = isAuthenticated ? user.name : "-";
+
+  if (appWelcomeName) {
+    appWelcomeName.innerText = isAuthenticated ? user.name : "-";
+  }
+
+  if (appWelcomeMeta) {
+    appWelcomeMeta.innerText = isAuthenticated
+      ? `${user.email} • ID ${user.userId}`
+      : "Your verified account powers daily meal coordination.";
+  }
 
   if (isAuthenticated && onLoginPage) {
     redirectTo(APP_PATH);
@@ -519,6 +766,14 @@ async function requestJson(path, options = {}) {
   } finally {
     hideGlobalLoader();
   }
+}
+
+async function fetchCountByDate(date) {
+  return requestJson(`/count/${date}`);
+}
+
+async function fetchAnalytics() {
+  return requestJson("/analytics");
 }
 
 async function handleSignup(event) {
@@ -677,6 +932,10 @@ async function submitVote() {
     });
     updateStatusPreview();
     showToast("result", result.message, "success");
+    await Promise.allSettled([
+      refreshCountForSelectedDate(true),
+      loadAnalytics(true, false)
+    ]);
   } catch (error) {
     showToast("result", error.message, "error");
   } finally {
@@ -691,21 +950,73 @@ async function getCount() {
     return;
   }
 
+  await refreshCountForSelectedDate(false);
+}
+
+async function refreshCountForSelectedDate(silent = false) {
+  const date = getElement("countDate")?.value;
+
+  if (!date) {
+    if (!silent) {
+      showToast("countResult", "Please choose a reporting date.", "error");
+    }
+    return;
+  }
+
   const countBtn = getElement("countBtn");
   const originalText = countBtn.innerHTML;
   countBtn.innerHTML = '<div class="spinner"></div> Loading...';
   countBtn.disabled = true;
 
   try {
-    const date = getElement("countDate").value;
-    const result = await requestJson(`/count/${date}`);
+    const result = await fetchCountByDate(date);
     updateSnapshot(result);
-    showToast("countResult", `Yes: ${result.yes} | No: ${result.no} | Total: ${result.total}`, "success");
+    if (!silent) {
+      showToast("countResult", `Yes: ${result.yes} | No: ${result.no} | Total: ${result.total}`, "success");
+    }
   } catch (error) {
-    showToast("countResult", error.message, "error");
+    if (!silent) {
+      showToast("countResult", error.message, "error");
+    }
   } finally {
     countBtn.innerHTML = originalText;
     countBtn.disabled = false;
+  }
+}
+
+async function loadAnalytics(showToastMessage = false, showLoadingToast = true) {
+  const refreshButton = getElement("refreshAnalyticsBtn");
+  const originalText = refreshButton ? refreshButton.innerHTML : "";
+
+  if (refreshButton) {
+    refreshButton.innerHTML = '<div class="spinner"></div> Refreshing...';
+    refreshButton.disabled = true;
+  }
+
+  if (showLoadingToast) {
+    setAnalyticsStatus("Loading analytics...");
+  }
+
+  try {
+    const data = await fetchAnalytics();
+    renderAnalyticsChart(data);
+    setAnalyticsStatus(data.length ? "Analytics synced with the latest vote data." : "No analytics data available yet.");
+
+    if (showToastMessage) {
+      showToast("analyticsResult", "Analytics dashboard refreshed.", "success");
+    }
+  } catch (error) {
+    renderAnalyticsChart([]);
+    setAnalyticsStatus(error.message, true);
+
+    if (showToastMessage) {
+      showToast("analyticsResult", error.message, "error");
+    }
+  } finally {
+    if (refreshButton) {
+      refreshButton.innerHTML = originalText;
+      refreshButton.disabled = false;
+    }
   }
 }
 
@@ -724,6 +1035,7 @@ function initializeDates() {
 
   updateSystemLabels(today);
   updateSnapshot({ date: today, yes: 0, no: 0, total: 0 });
+  updateAnalyticsSummary([]);
 }
 
 function attachFieldListeners() {
@@ -783,6 +1095,30 @@ function startDeadlineClock() {
   setInterval(updateDeadlineStatus, 60000);
 }
 
+function attachTiltEffects() {
+  const tiltPanels = document.querySelectorAll(".tilt-panel");
+
+  tiltPanels.forEach((panel) => {
+    panel.addEventListener("pointermove", (event) => {
+      if (window.innerWidth <= 900) {
+        return;
+      }
+
+      const rect = panel.getBoundingClientRect();
+      const offsetX = (event.clientX - rect.left) / rect.width;
+      const offsetY = (event.clientY - rect.top) / rect.height;
+      const rotateY = (offsetX - 0.5) * 8;
+      const rotateX = (0.5 - offsetY) * 8;
+
+      panel.style.transform = `perspective(1800px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+    });
+
+    panel.addEventListener("pointerleave", () => {
+      panel.style.transform = "";
+    });
+  });
+}
+
 getElement("loginForm").addEventListener("submit", handleLogin);
 getElement("signupForm").addEventListener("submit", handleSignup);
 
@@ -792,4 +1128,7 @@ initializeDates();
 attachFieldListeners();
 updateStatusPreview();
 startDeadlineClock();
+attachTiltEffects();
 restoreSession();
+refreshCountForSelectedDate(true);
+loadAnalytics(false);

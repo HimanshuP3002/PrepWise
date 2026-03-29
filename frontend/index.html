@@ -140,88 +140,104 @@
             </section>
 
             <section class="workspace" id="authWorkspace">
-                <section class="panel shell-card reveal" id="auth-panel">
-                    <div class="panel-header">
-                        <div>
-                            <p class="eyebrow">Authentication</p>
-                            <h2>Enter the PrepWise workspace</h2>
-                        </div>
-                        <div class="panel-badge">Required before voting</div>
+                <section class="panel shell-card reveal tilt-panel auth-panel-3d" id="auth-panel">
+                    <div class="auth-panel-layers" aria-hidden="true">
+                        <span class="auth-glow auth-glow-one"></span>
+                        <span class="auth-glow auth-glow-two"></span>
                     </div>
 
-                    <p class="panel-intro">
-                        Your account connects every meal response to a verified identity, reducing duplicates and keeping
-                        daily planning dependable.
-                    </p>
-
-                    <div class="auth-tabs">
-                        <button id="loginTab" class="tab-btn active" type="button" onclick="switchAuthMode('login')">
-                            Login
-                        </button>
-                        <button id="signupTab" class="tab-btn" type="button" onclick="switchAuthMode('signup')">
-                            Sign Up
-                        </button>
-                    </div>
-
-                    <form id="loginForm" class="auth-form" novalidate>
-                        <div class="form-group">
-                            <label for="loginEmail">Email</label>
-                            <input type="email" id="loginEmail" class="form-control" placeholder="you@example.com">
-                            <p id="loginEmailError" class="field-error"></p>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="loginPassword">Password</label>
-                            <div class="password-field">
-                                <input type="password" id="loginPassword" class="form-control" placeholder="Enter password">
-                                <button class="password-toggle" type="button" aria-label="Show password"
-                                    onclick="togglePasswordVisibility('loginPassword', this)">
-                                    <span class="material-symbols-outlined eye-icon" aria-hidden="true">visibility_off</span>
-                                </button>
+                    <div class="auth-form-shell auth-form-shell-centered">
+                        <div class="panel-header">
+                            <div>
+                                <p class="eyebrow">Access portal</p>
+                                <h2>Enter the PrepWise workspace</h2>
                             </div>
-                            <p id="loginPasswordError" class="field-error"></p>
+                            <div class="panel-badge">Required before voting</div>
                         </div>
 
-                        <button id="loginBtn" class="btn-submit" type="submit">Login</button>
-                        <div id="loginResult" class="result-toast"></div>
-                    </form>
+                        <p class="panel-intro auth-clean-intro">
+                            Sign in or create an account to submit meal votes with a clean, verified workflow.
+                        </p>
 
-                    <form id="signupForm" class="auth-form hidden" novalidate>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="signupUserId">User ID</label>
-                                <input type="text" id="signupUserId" class="form-control" placeholder="E.g., 12345">
-                                <p id="signupUserIdError" class="field-error"></p>
+                        <div class="auth-tabs">
+                            <button id="loginTab" class="tab-btn active" type="button" onclick="switchAuthMode('login')">
+                                Login
+                            </button>
+                            <button id="signupTab" class="tab-btn" type="button" onclick="switchAuthMode('signup')">
+                                Sign Up
+                            </button>
+                        </div>
+
+                        <form id="loginForm" class="auth-form" novalidate>
+                            <div class="auth-form-heading">
+                                <strong>Welcome back</strong>
+                                <span>Use your account to submit votes and monitor daily demand.</span>
                             </div>
 
                             <div class="form-group">
-                                <label for="signupName">Full Name</label>
-                                <input type="text" id="signupName" class="form-control" placeholder="E.g., Himanshu Pandey">
-                                <p id="signupNameError" class="field-error"></p>
+                                <label for="loginEmail">Email</label>
+                                <input type="email" id="loginEmail" class="form-control" placeholder="you@example.com">
+                                <p id="loginEmailError" class="field-error"></p>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="signupEmail">Email</label>
-                            <input type="email" id="signupEmail" class="form-control" placeholder="you@example.com">
-                            <p id="signupEmailError" class="field-error"></p>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="signupPassword">Password</label>
-                            <div class="password-field">
-                                <input type="password" id="signupPassword" class="form-control" placeholder="Minimum 6 characters">
-                                <button class="password-toggle" type="button" aria-label="Show password"
-                                    onclick="togglePasswordVisibility('signupPassword', this)">
-                                    <span class="material-symbols-outlined eye-icon" aria-hidden="true">visibility_off</span>
-                                </button>
+                            <div class="form-group">
+                                <label for="loginPassword">Password</label>
+                                <div class="password-field">
+                                    <input type="password" id="loginPassword" class="form-control" placeholder="Enter password">
+                                    <button class="password-toggle" type="button" aria-label="Show password"
+                                        onclick="togglePasswordVisibility('loginPassword', this)">
+                                        <span class="material-symbols-outlined eye-icon" aria-hidden="true">visibility_off</span>
+                                    </button>
+                                </div>
+                                <p id="loginPasswordError" class="field-error"></p>
                             </div>
-                            <p id="signupPasswordError" class="field-error"></p>
-                        </div>
 
-                        <button id="signupBtn" class="btn-submit" type="submit">Create Account</button>
-                        <div id="signupResult" class="result-toast"></div>
-                    </form>
+                            <button id="loginBtn" class="btn-submit auth-submit-btn" type="submit">Login</button>
+                            <div id="loginResult" class="result-toast"></div>
+                        </form>
+
+                        <form id="signupForm" class="auth-form hidden" novalidate>
+                            <div class="auth-form-heading">
+                                <strong>Create your account</strong>
+                                <span>Get set up once and use a cleaner, accountable meal voting flow every day.</span>
+                            </div>
+
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="signupUserId">User ID</label>
+                                    <input type="text" id="signupUserId" class="form-control" placeholder="E.g., 12345">
+                                    <p id="signupUserIdError" class="field-error"></p>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="signupName">Full Name</label>
+                                    <input type="text" id="signupName" class="form-control" placeholder="E.g., Himanshu Pandey">
+                                    <p id="signupNameError" class="field-error"></p>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="signupEmail">Email</label>
+                                <input type="email" id="signupEmail" class="form-control" placeholder="you@example.com">
+                                <p id="signupEmailError" class="field-error"></p>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="signupPassword">Password</label>
+                                <div class="password-field">
+                                    <input type="password" id="signupPassword" class="form-control" placeholder="Minimum 6 characters">
+                                    <button class="password-toggle" type="button" aria-label="Show password"
+                                        onclick="togglePasswordVisibility('signupPassword', this)">
+                                        <span class="material-symbols-outlined eye-icon" aria-hidden="true">visibility_off</span>
+                                    </button>
+                                </div>
+                                <p id="signupPasswordError" class="field-error"></p>
+                            </div>
+
+                            <button id="signupBtn" class="btn-submit auth-submit-btn" type="submit">Create Account</button>
+                            <div id="signupResult" class="result-toast"></div>
+                        </form>
+                    </div>
                 </section>
 
                 <aside class="panel shell-card ambient-panel reveal" id="accountPanel">
@@ -264,18 +280,46 @@
             </section>
 
             <section id="appPanel" class="app-panel hidden">
+                <section class="app-overview shell-card reveal" id="appOverview">
+                    <div class="app-overview-copy">
+                        <p class="eyebrow">Workspace</p>
+                        <h1>Daily meal operations, organized.</h1>
+                        <p class="app-overview-text">
+                            Submit today’s vote, review demand instantly, and track attendance trends from one clean operational surface.
+                        </p>
+                    </div>
+
+                    <div class="app-overview-stats">
+                        <article class="app-stat-card app-stat-card-primary">
+                            <span class="snapshot-label">Signed in as</span>
+                            <strong id="appWelcomeName">-</strong>
+                            <p id="appWelcomeMeta">Your verified account powers daily meal coordination.</p>
+                        </article>
+                        <article class="app-stat-card">
+                            <span class="snapshot-label">Today</span>
+                            <strong id="appTodayDate">Loading...</strong>
+                            <p id="appDeadlineSummary">Voting window status will appear here.</p>
+                        </article>
+                        <article class="app-stat-card">
+                            <span class="snapshot-label">Analytics</span>
+                            <strong id="appAnalyticsSummary">Waiting for data</strong>
+                            <p>Trend visibility updates automatically after vote activity.</p>
+                        </article>
+                    </div>
+                </section>
+
                 <section class="workspace app-workspace">
                     <article class="panel shell-card reveal" id="vote-panel">
                         <div class="panel-header">
                             <div>
-                                <p class="eyebrow">Student check-in</p>
+                                <p class="eyebrow">Vote</p>
                                 <h2>Confirm your meal plan</h2>
                             </div>
-                            <div class="panel-badge">Signed-in voting</div>
+                            <div class="panel-badge">Daily action</div>
                         </div>
 
                         <p class="panel-intro">
-                            Your profile is loaded automatically. Choose a date, pick your attendance status, and confirm in seconds.
+                            Your profile is already loaded. Pick a date, choose your status, and submit in one short flow.
                         </p>
 
                         <div class="identity-strip">
@@ -337,68 +381,116 @@
                         <div id="result" class="result-toast"></div>
                     </article>
 
-                    <aside class="panel shell-card ambient-panel reveal" id="ops-panel">
-                        <div class="panel-header">
-                            <div>
-                                <p class="eyebrow">Operations desk</p>
-                                <h2>Track live meal demand</h2>
-                            </div>
-                            <div class="panel-badge panel-badge-secondary">Admin count view</div>
-                        </div>
-
-                        <p class="panel-intro">
-                            Pull the latest totals for any date and get an immediate visual sense of attendance behavior.
-                        </p>
-
-                        <div class="ops-snapshot">
-                            <div class="snapshot-card accent">
-                                <span class="snapshot-label">Selected date</span>
-                                <strong id="liveDate">Not loaded</strong>
-                            </div>
-                            <div class="snapshot-row">
-                                <div class="snapshot-card">
-                                    <span class="snapshot-label">Yes</span>
-                                    <strong id="liveYes">0</strong>
+                    <div class="app-side-stack">
+                        <aside class="panel shell-card ambient-panel reveal" id="ops-panel">
+                            <div class="panel-header">
+                                <div>
+                                    <p class="eyebrow">Counts</p>
+                                    <h2>Track live meal demand</h2>
                                 </div>
-                                <div class="snapshot-card">
-                                    <span class="snapshot-label">No</span>
-                                    <strong id="liveNo">0</strong>
+                                <div class="panel-badge panel-badge-secondary">Live totals</div>
+                            </div>
+
+                            <p class="panel-intro">
+                                Review confirmed yes/no totals for any selected day with a fast operational summary.
+                            </p>
+
+                            <div class="ops-snapshot">
+                                <div class="snapshot-card accent">
+                                    <span class="snapshot-label">Selected date</span>
+                                    <strong id="liveDate">Not loaded</strong>
                                 </div>
-                                <div class="snapshot-card">
-                                    <span class="snapshot-label">Total</span>
-                                    <strong id="liveTotal">0</strong>
+                                <div class="snapshot-row">
+                                    <div class="snapshot-card">
+                                        <span class="snapshot-label">Yes</span>
+                                        <strong id="liveYes">0</strong>
+                                    </div>
+                                    <div class="snapshot-card">
+                                        <span class="snapshot-label">No</span>
+                                        <strong id="liveNo">0</strong>
+                                    </div>
+                                    <div class="snapshot-card">
+                                        <span class="snapshot-label">Total</span>
+                                        <strong id="liveTotal">0</strong>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="count-visual">
-                            <div class="count-bar-track">
-                                <div id="yesBar" class="count-bar yes-bar"></div>
-                                <div id="noBar" class="count-bar no-bar"></div>
+                            <div class="count-visual">
+                                <div class="count-bar-track">
+                                    <div id="yesBar" class="count-bar yes-bar"></div>
+                                    <div id="noBar" class="count-bar no-bar"></div>
+                                </div>
+                                <div class="count-legend">
+                                    <span><i class="legend-dot yes-dot"></i>Meal yes</span>
+                                    <span><i class="legend-dot no-dot"></i>Meal no</span>
+                                </div>
                             </div>
-                            <div class="count-legend">
-                                <span><i class="legend-dot yes-dot"></i>Meal yes</span>
-                                <span><i class="legend-dot no-dot"></i>Meal no</span>
+
+                            <div class="form-group">
+                                <label for="countDate">Reporting Date</label>
+                                <input type="date" id="countDate" class="form-control">
+                                <p id="countDateError" class="field-error"></p>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <label for="countDate">Reporting Date</label>
-                            <input type="date" id="countDate" class="form-control">
-                            <p id="countDateError" class="field-error"></p>
-                        </div>
+                            <button id="countBtn" class="btn-submit btn-secondary" type="button" onclick="getCount()">
+                                Get Count
+                            </button>
 
-                        <button id="countBtn" class="btn-submit btn-secondary" type="button" onclick="getCount()">
-                            Get Count
-                        </button>
+                            <div id="countResult" class="result-toast"></div>
+                        </aside>
 
-                        <div id="countResult" class="result-toast"></div>
-                    </aside>
+                        <section class="panel shell-card analytics-panel reveal" id="analytics-panel">
+                            <div class="panel-header">
+                                <div>
+                                    <p class="eyebrow">Analytics</p>
+                                    <h2>Vote trends over time</h2>
+                                </div>
+                                <div class="panel-badge analytics-badge">Trend view</div>
+                            </div>
+
+                            <p class="panel-intro">
+                                Understand demand patterns across dates with a cleaner chart built for real operational reporting.
+                            </p>
+
+                            <div class="analytics-metrics">
+                                <div class="metric-card">
+                                    <span class="snapshot-label">Dates tracked</span>
+                                    <strong id="analyticsDatesTracked">0</strong>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="snapshot-label">Highest yes</span>
+                                    <strong id="analyticsHighestYes">0</strong>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="snapshot-label">Latest total</span>
+                                    <strong id="analyticsLatestTotal">0</strong>
+                                </div>
+                            </div>
+
+                            <div class="analytics-toolbar">
+                                <div id="analyticsStatus" class="analytics-status">Loading analytics...</div>
+                                <button id="refreshAnalyticsBtn" class="ghost-btn analytics-refresh" type="button" onclick="loadAnalytics(true)">
+                                    Refresh Analytics
+                                </button>
+                            </div>
+
+                            <div class="chart-shell">
+                                <canvas id="analyticsChart" aria-label="Meal vote analytics chart"></canvas>
+                                <div id="analyticsEmptyState" class="analytics-empty hidden">
+                                    No analytics data yet. Submit a few votes to unlock trend insights.
+                                </div>
+                            </div>
+
+                            <div id="analyticsResult" class="result-toast"></div>
+                        </section>
+                    </div>
                 </section>
             </section>
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js?v=3.0"></script>
 </body>
 </html>

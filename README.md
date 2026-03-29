@@ -16,6 +16,7 @@ PrepWise solves this by giving users a simple way to submit a daily meal respons
 - Submit a daily meal vote as `Yes` or `No`
 - Update an existing vote for the same user and date instead of creating duplicates
 - View real-time meal counts for a selected date
+- View date-wise analytics trends for yes/no votes in a dashboard chart
 - Enforce a voting deadline after 10:00 PM using server-side time
 - Validate requests on the backend for required fields and invalid values
 - Handle malformed requests and database errors with meaningful API responses
@@ -116,6 +117,25 @@ Response:
 }
 ```
 
+#### `GET /analytics`
+
+Get aggregated yes/no vote totals grouped by date.
+
+Example:
+
+```http
+GET /analytics
+```
+
+Response:
+
+```json
+[
+  { "date": "2026-03-25", "yes": 20, "no": 10 },
+  { "date": "2026-03-26", "yes": 25, "no": 5 }
+]
+```
+
 ### Authentication APIs
 
 #### `POST /auth/signup`
@@ -201,7 +221,6 @@ The server will redirect users to the login page and serve the frontend directly
 - Role-based authentication and session hardening
 - React-based frontend for a more scalable UI architecture
 - AI-based meal demand prediction
-- Admin analytics dashboard with trends and reports
 - Email or notification reminders before deadline
 
 ## Development Notes
