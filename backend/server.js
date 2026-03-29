@@ -20,7 +20,7 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .filter(Boolean);
 const VOTING_DEADLINE_HOUR = 22;
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
-const API_ROUTE_PREFIXES = ["/auth", "/vote", "/count", "/all", "/health"];
+const API_ROUTE_PREFIXES = ["/auth", "/vote", "/count", "/analytics", "/all", "/health"];
 
 class AppError extends Error {
   constructor(statusCode, message) {
@@ -452,6 +452,43 @@ app.get("/count/:date", async (req, res, next) => {
       no: noCount,
       total: yesCount + noCount
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.get("/analytics", async (req, res, next) => {
+  try {
+    const analytics = await Vote.aggregate([
+      {
+        $group: {
+          _id: "$date",
+          yes: {
+            $sum: {
+              $cond: [{ $eq: ["$status", "yes"] }, 1, 0]
+            }
+          },
+          no: {
+            $sum: {
+              $cond: [{ $eq: ["$status", "no"] }, 1, 0]
+            }
+          }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      },
+      {
+        $project: {
+          _id: 0,
+          date: "$_id",
+          yes: 1,
+          no: 1
+        }
+      }
+    ]);
+
+    res.json(analytics);
   } catch (error) {
     next(error);
   }
