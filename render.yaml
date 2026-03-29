@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: prepwise
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: AUTH_SECRET
+        sync: false
+      - key: MONGO_URI
+        sync: false

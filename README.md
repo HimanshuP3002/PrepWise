@@ -210,6 +210,35 @@ http://localhost:5000
 
 The server will redirect users to the login page and serve the frontend directly.
 
+## Render Deployment
+
+PrepWise is now configured to run on Render as a single web service using [render.yaml](h:\PrepWise\render.yaml).
+
+Use these settings:
+
+- Root directory: leave empty if you deploy with Blueprint, because `render.yaml` already points Render to `backend/`
+- Build command: handled by `render.yaml`
+- Start command: handled by `render.yaml`
+- Health check path: `/health`
+
+Required environment variables in Render:
+
+- `MONGO_URI`
+- `AUTH_SECRET`
+- `ALLOWED_ORIGINS`
+
+For a same-domain Render deploy, set:
+
+```env
+ALLOWED_ORIGINS=https://your-app-name.onrender.com
+```
+
+Why this matters:
+
+- Render must start from `backend/`, not the repo root
+- the backend `npm start` script builds the React frontend before starting Express
+- Express then serves the built frontend and API from the same Render port
+
 ## Screenshots
 
 ### Login Page

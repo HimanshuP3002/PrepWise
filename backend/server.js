@@ -100,6 +100,28 @@ function sendFrontendApp(res) {
   res.sendFile(FRONTEND_INDEX_PATH);
 }
 
+function sendFrontendAsset(req, res, next) {
+  if (!frontendReady) {
+    next();
+    return;
+  }
+
+  const requestedPath = req.path.replace(/^\/+/, "");
+  const resolvedAssetPath = path.resolve(FRONTEND_DIST_DIR, requestedPath);
+
+  if (!resolvedAssetPath.startsWith(FRONTEND_DIST_DIR)) {
+    next();
+    return;
+  }
+
+  if (fs.existsSync(resolvedAssetPath) && fs.statSync(resolvedAssetPath).isFile()) {
+    res.sendFile(resolvedAssetPath);
+    return;
+  }
+
+  next();
+}
+
 app.use(cors(buildCorsOptions()));
 app.disable("x-powered-by");
 app.use(express.json());
@@ -679,6 +701,11 @@ app.use((req, res, next) => {
     return;
   }
 
+  if (path.extname(req.path)) {
+    sendFrontendAsset(req, res, next);
+    return;
+  }
+
   sendFrontendApp(res);
 });
 
@@ -703,7 +730,6 @@ async function startServer() {
     assertRequiredConfiguration();
     ensureFrontendBuild();
     frontendReady = true;
-    app.use(express.static(FRONTEND_DIST_DIR));
     await mongoose.connect(MONGO_URI, { dbName: "MessVote" });
     console.log("MongoDB Connected to MessVote");
 

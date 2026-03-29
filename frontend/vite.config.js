@@ -11,6 +11,7 @@ export default defineConfig({
       "/vote": "http://localhost:5000",
       "/count": "http://localhost:5000",
       "/analytics": "http://localhost:5000",
+      "/prediction": "http://localhost:5000",
       "/health": "http://localhost:5000"
     }
   },
