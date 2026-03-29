@@ -178,6 +178,11 @@ NODE_ENV=development
 ALLOWED_ORIGINS=http://localhost:5000
 ```
 
+For deployment:
+
+- Set `ALLOWED_ORIGINS` to your live frontend origin if you serve the frontend from a different domain.
+- If the frontend is served by the same Express app, the login page will continue to work without extra frontend changes.
+
 ### 4. Run the Backend Server
 
 From the `backend` directory:

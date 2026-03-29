@@ -57,9 +57,7 @@ function buildCorsOptions() {
   };
 }
 
-app.use(cors({
-  origin: "*"
-}));
+app.use(cors(buildCorsOptions()));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(FRONTEND_DIR));
