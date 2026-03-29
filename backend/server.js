@@ -4,6 +4,7 @@ const crypto = require("crypto");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const fs = require("fs");
 const path = require("path");
 
 const Vote = require("./models/vote");
@@ -19,7 +20,9 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .map((origin) => origin.trim())
   .filter(Boolean);
 const VOTING_DEADLINE_HOUR = 22;
-const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
+const FRONTEND_ROOT_DIR = path.join(__dirname, "..", "frontend");
+const FRONTEND_DIST_DIR = path.join(FRONTEND_ROOT_DIR, "dist");
+const FRONTEND_DIR = fs.existsSync(FRONTEND_DIST_DIR) ? FRONTEND_DIST_DIR : FRONTEND_ROOT_DIR;
 const API_ROUTE_PREFIXES = ["/auth", "/vote", "/count", "/analytics", "/all", "/health"];
 
 class AppError extends Error {
