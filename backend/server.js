@@ -12,6 +12,7 @@ const Vote = require("./models/vote");
 const User = require("./models/user");
 
 const app = express();
+let frontendReady = false;
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 const NODE_ENV = process.env.NODE_ENV || "development";
@@ -24,33 +25,34 @@ const VOTING_DEADLINE_HOUR = 22;
 const FRONTEND_ROOT_DIR = path.join(__dirname, "..", "frontend");
 const FRONTEND_DIST_DIR = path.join(FRONTEND_ROOT_DIR, "dist");
 const FRONTEND_PACKAGE_PATH = path.join(FRONTEND_ROOT_DIR, "package.json");
+const FRONTEND_INDEX_PATH = path.join(FRONTEND_DIST_DIR, "index.html");
+const NPM_EXECUTABLE = process.platform === "win32" ? "npm.cmd" : "npm";
 
-function resolveFrontendDir() {
+function ensureFrontendBuild() {
   if (fs.existsSync(FRONTEND_DIST_DIR)) {
-    return FRONTEND_DIST_DIR;
+    return;
   }
 
   if (!fs.existsSync(FRONTEND_PACKAGE_PATH)) {
-    return FRONTEND_ROOT_DIR;
+    throw new Error("Frontend package.json was not found. The frontend cannot be served.");
   }
 
   try {
     console.log("Frontend build not found. Building React frontend...");
-    childProcess.execFileSync("npm", ["run", "build"], {
+    childProcess.execFileSync(NPM_EXECUTABLE, ["run", "build"], {
       cwd: FRONTEND_ROOT_DIR,
-      stdio: "inherit",
-      shell: process.platform === "win32"
+      stdio: "inherit"
     });
   } catch (error) {
-    console.error("Frontend build failed. Falling back to source directory.");
-    return FRONTEND_ROOT_DIR;
+    throw new Error("Frontend build failed. The server cannot start without a production frontend build.");
   }
 
-  return fs.existsSync(FRONTEND_DIST_DIR) ? FRONTEND_DIST_DIR : FRONTEND_ROOT_DIR;
+  if (!fs.existsSync(FRONTEND_DIST_DIR)) {
+    throw new Error("Frontend dist directory is still missing after the build step.");
+  }
 }
 
-const FRONTEND_DIR = resolveFrontendDir();
-const API_ROUTE_PREFIXES = ["/auth", "/vote", "/count", "/analytics", "/all", "/health"];
+const API_ROUTE_PREFIXES = ["/auth", "/vote", "/count", "/analytics", "/prediction", "/all", "/health"];
 
 class AppError extends Error {
   constructor(statusCode, message) {
@@ -87,10 +89,21 @@ function buildCorsOptions() {
   };
 }
 
+function sendFrontendApp(res) {
+  if (!frontendReady || !fs.existsSync(FRONTEND_INDEX_PATH)) {
+    res.status(503).json({
+      error: "Frontend build is not ready on the server."
+    });
+    return;
+  }
+
+  res.sendFile(FRONTEND_INDEX_PATH);
+}
+
 app.use(cors(buildCorsOptions()));
+app.disable("x-powered-by");
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(FRONTEND_DIR));
 
 function createPasswordCredentials(password) {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -284,6 +297,78 @@ function validateCountDate(date) {
   }
 
   return { valid: true, date: date.trim() };
+}
+
+function formatDateOnly(date) {
+  return date.toISOString().split("T")[0];
+}
+
+function addDays(dateString, daysToAdd) {
+  const date = new Date(`${dateString}T00:00:00`);
+  date.setDate(date.getDate() + daysToAdd);
+  return formatDateOnly(date);
+}
+
+function weekdayFromDate(dateString) {
+  return new Date(`${dateString}T00:00:00`).getDay();
+}
+
+function clampPrediction(value) {
+  return Math.max(0, Math.round(value));
+}
+
+function buildForecasts(analytics, forecastDays) {
+  if (analytics.length === 0) {
+    return [];
+  }
+
+  const recentWindow = analytics.slice(-Math.min(analytics.length, 7));
+  const weightedTotals = recentWindow.reduce(
+    (accumulator, entry, index) => {
+      const weight = index + 1;
+      accumulator.weight += weight;
+      accumulator.yes += entry.yes * weight;
+      accumulator.no += entry.no * weight;
+      return accumulator;
+    },
+    { yes: 0, no: 0, weight: 0 }
+  );
+
+  const weightedAverageYes = weightedTotals.weight ? weightedTotals.yes / weightedTotals.weight : 0;
+  const weightedAverageNo = weightedTotals.weight ? weightedTotals.no / weightedTotals.weight : 0;
+  const lastKnownDate = analytics[analytics.length - 1].date;
+
+  return Array.from({ length: forecastDays }, (_, index) => {
+    const predictionDate = addDays(lastKnownDate, index + 1);
+    const predictionWeekday = weekdayFromDate(predictionDate);
+    const weekdayMatches = analytics.filter((entry) => weekdayFromDate(entry.date) === predictionWeekday);
+
+    const weekdayAverageYes = weekdayMatches.length
+      ? weekdayMatches.reduce((sum, entry) => sum + entry.yes, 0) / weekdayMatches.length
+      : weightedAverageYes;
+    const weekdayAverageNo = weekdayMatches.length
+      ? weekdayMatches.reduce((sum, entry) => sum + entry.no, 0) / weekdayMatches.length
+      : weightedAverageNo;
+
+    const predictedYes = clampPrediction((weightedAverageYes * 0.65) + (weekdayAverageYes * 0.35));
+    const predictedNo = clampPrediction((weightedAverageNo * 0.65) + (weekdayAverageNo * 0.35));
+    const confidenceScore = Math.min(
+      95,
+      45 + (analytics.length * 3) + (weekdayMatches.length * 4)
+    );
+
+    return {
+      date: predictionDate,
+      predictedYes,
+      predictedNo,
+      predictedTotal: predictedYes + predictedNo,
+      confidence: confidenceScore,
+      factors: {
+        historicalDays: analytics.length,
+        weekdayMatches: weekdayMatches.length
+      }
+    };
+  });
 }
 
 function isVotingClosed(now = new Date()) {
@@ -522,6 +607,55 @@ app.get("/analytics", async (req, res, next) => {
   }
 });
 
+app.get("/prediction", async (req, res, next) => {
+  try {
+    const requestedDays = Number.parseInt(req.query.days, 10);
+    const forecastDays = Number.isInteger(requestedDays) && requestedDays > 0
+      ? Math.min(requestedDays, 14)
+      : 7;
+
+    const analytics = await Vote.aggregate([
+      {
+        $group: {
+          _id: "$date",
+          yes: {
+            $sum: {
+              $cond: [{ $eq: ["$status", "yes"] }, 1, 0]
+            }
+          },
+          no: {
+            $sum: {
+              $cond: [{ $eq: ["$status", "no"] }, 1, 0]
+            }
+          }
+        }
+      },
+      {
+        $sort: { _id: 1 }
+      },
+      {
+        $project: {
+          _id: 0,
+          date: "$_id",
+          yes: 1,
+          no: 1
+        }
+      }
+    ]);
+
+    const forecasts = buildForecasts(analytics, forecastDays);
+
+    res.json({
+      model: "weighted-trend-forecast",
+      generatedAt: new Date().toISOString(),
+      historyDays: analytics.length,
+      forecasts
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.get("/all", authenticateRequest, async (req, res, next) => {
   try {
     const votes = await Vote.find().sort({ date: 1, userId: 1 });
@@ -532,11 +666,11 @@ app.get("/all", authenticateRequest, async (req, res, next) => {
 });
 
 app.get("/", (req, res) => {
-  res.redirect("/login");
+  sendFrontendApp(res);
 });
 
 app.get(["/login", "/app"], (req, res) => {
-  res.sendFile(path.join(FRONTEND_DIR, "index.html"));
+  sendFrontendApp(res);
 });
 
 app.use((req, res, next) => {
@@ -545,7 +679,7 @@ app.use((req, res, next) => {
     return;
   }
 
-  res.sendFile(path.join(FRONTEND_DIR, "index.html"));
+  sendFrontendApp(res);
 });
 
 app.use((req, res) => {
@@ -567,6 +701,9 @@ app.use((error, req, res, next) => {
 async function startServer() {
   try {
     assertRequiredConfiguration();
+    ensureFrontendBuild();
+    frontendReady = true;
+    app.use(express.static(FRONTEND_DIST_DIR));
     await mongoose.connect(MONGO_URI, { dbName: "MessVote" });
     console.log("MongoDB Connected to MessVote");
 

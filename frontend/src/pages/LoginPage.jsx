@@ -53,11 +53,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="page-shell auth-page">
+    <div className="page-shell auth-page immersive-page">
       <Header title={shellTitle.title} subtitle={shellTitle.subtitle} />
 
       <main className="auth-layout">
-        <section className="hero-copy shell-card">
+        <section className="hero-copy shell-card hero-card">
           <p className="eyebrow">Campus meal intelligence</p>
           <h1>Turn routine attendance into a clear, modern workflow.</h1>
           <p className="hero-text">

@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import AnalyticsCard from "../components/AnalyticsCard";
 import CountCard from "../components/CountCard";
 import Header from "../components/Header";
+import PredictionCard from "../components/PredictionCard";
 import VoteCard from "../components/VoteCard";
-import { getAnalytics, getCount, submitVote } from "../services/api";
+import { getAnalytics, getCount, getPrediction, submitVote } from "../services/api";
 import { useAuth } from "../state/AuthContext";
 import { formatPrettyDate, getDeadlineMessage, getTodayIso } from "../utils/date";
 
@@ -16,8 +17,10 @@ export default function DashboardPage() {
   const [voteLoading, setVoteLoading] = useState(false);
   const [countLoading, setCountLoading] = useState(false);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [predictionLoading, setPredictionLoading] = useState(false);
   const [voteMessage, setVoteMessage] = useState(null);
   const [countMessage, setCountMessage] = useState(null);
+  const [forecastDays, setForecastDays] = useState(7);
   const [countData, setCountData] = useState({
     dateLabel: formatPrettyDate(today),
     yes: 0,
@@ -25,6 +28,7 @@ export default function DashboardPage() {
     total: 0
   });
   const [analytics, setAnalytics] = useState([]);
+  const [predictionData, setPredictionData] = useState(null);
 
   const refreshCount = async (silent = false) => {
     setCountLoading(true);
@@ -64,10 +68,26 @@ export default function DashboardPage() {
     }
   };
 
+  const refreshPrediction = async (days = forecastDays) => {
+    setPredictionLoading(true);
+
+    try {
+      const result = await getPrediction(days);
+      setPredictionData(result);
+    } finally {
+      setPredictionLoading(false);
+    }
+  };
+
   useEffect(() => {
     refreshCount(true);
     refreshAnalytics();
+    refreshPrediction(forecastDays);
   }, []);
+
+  useEffect(() => {
+    refreshPrediction(forecastDays);
+  }, [forecastDays]);
 
   useEffect(() => {
     setCountData((current) => ({
@@ -84,7 +104,7 @@ export default function DashboardPage() {
       const result = await submitVote({ date: voteDate, status: selectedStatus }, token);
       setVoteMessage({ type: "success", text: result.message });
       setSelectedStatus("");
-      await Promise.all([refreshCount(true), refreshAnalytics()]);
+      await Promise.all([refreshCount(true), refreshAnalytics(), refreshPrediction(forecastDays)]);
     } catch (error) {
       setVoteMessage({ type: "error", text: error.message });
     } finally {
@@ -93,7 +113,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="page-shell dashboard-page">
+    <div className="page-shell dashboard-page immersive-page">
       <Header
         onLogout={logout}
         subtitle="Daily meal operations, organized."
@@ -102,7 +122,7 @@ export default function DashboardPage() {
       />
 
       <main className="dashboard-layout">
-        <section className="app-overview shell-card">
+        <section className="app-overview shell-card overview-card">
           <div className="app-overview-copy">
             <p className="eyebrow">Workspace</p>
             <h1>Daily meal operations, organized.</h1>
@@ -115,7 +135,7 @@ export default function DashboardPage() {
             <article className="app-stat-card app-stat-card-primary">
               <span className="snapshot-label">Signed in as</span>
               <strong>{user.name}</strong>
-              <p>{`${user.email} • ID ${user.userId}`}</p>
+              <p>{`${user.email} | ID ${user.userId}`}</p>
             </article>
             <article className="app-stat-card">
               <span className="snapshot-label">Today</span>
@@ -159,6 +179,16 @@ export default function DashboardPage() {
 
           <section className="dashboard-row analytics-row">
             <AnalyticsCard analytics={analytics} loading={analyticsLoading} onRefresh={refreshAnalytics} />
+          </section>
+
+          <section className="dashboard-row prediction-row">
+            <PredictionCard
+              forecastDays={forecastDays}
+              loading={predictionLoading}
+              onForecastDaysChange={setForecastDays}
+              onRefresh={() => refreshPrediction(forecastDays)}
+              predictionData={predictionData}
+            />
           </section>
         </section>
       </main>

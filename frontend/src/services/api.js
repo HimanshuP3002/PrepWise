@@ -67,3 +67,7 @@ export function getCount(date) {
 export function getAnalytics() {
   return request("/analytics");
 }
+
+export function getPrediction(days = 7) {
+  return request(`/prediction?days=${days}`);
+}
