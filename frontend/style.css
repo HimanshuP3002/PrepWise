@@ -713,6 +713,31 @@ body[data-theme="light"] .hero-button-secondary {
   gap: 24px;
 }
 
+.dashboard-grid-shell {
+  display: grid;
+  gap: 24px;
+}
+
+.dashboard-row {
+  display: grid;
+  gap: 24px;
+}
+
+.dashboard-main-column,
+.dashboard-side-column {
+  display: grid;
+  gap: 24px;
+}
+
+.dashboard-row:first-child {
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  align-items: start;
+}
+
+.analytics-row {
+  grid-template-columns: 1fr;
+}
+
 .app-overview {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
@@ -1447,6 +1472,10 @@ body[data-theme="light"] .app-stat-card {
   .workspace,
   .app-workspace,
   .feature-ribbon {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-row:first-child {
     grid-template-columns: 1fr;
   }
 

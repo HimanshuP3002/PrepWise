@@ -285,7 +285,7 @@
                         <p class="eyebrow">Workspace</p>
                         <h1>Daily meal operations, organized.</h1>
                         <p class="app-overview-text">
-                            Submit today’s vote, review demand instantly, and track attendance trends from one clean operational surface.
+                            Submit today's vote, review demand instantly, and track attendance trends from one clean operational surface.
                         </p>
                     </div>
 
@@ -308,138 +308,144 @@
                     </div>
                 </section>
 
-                <section class="workspace app-workspace">
-                    <article class="panel shell-card reveal" id="vote-panel">
-                        <div class="panel-header">
-                            <div>
-                                <p class="eyebrow">Vote</p>
-                                <h2>Confirm your meal plan</h2>
-                            </div>
-                            <div class="panel-badge">Daily action</div>
-                        </div>
-
-                        <p class="panel-intro">
-                            Your profile is already loaded. Pick a date, choose your status, and submit in one short flow.
-                        </p>
-
-                        <div class="identity-strip">
-                            <div class="identity-chip">
-                                <span>User ID</span>
-                                <strong id="voteUserId">-</strong>
-                            </div>
-                            <div class="identity-chip">
-                                <span>Name</span>
-                                <strong id="voteName">-</strong>
-                            </div>
-                            <div class="identity-chip accent-chip">
-                                <span>Selection</span>
-                                <strong id="statusPreview">Choose status</strong>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="date">Attendance Date</label>
-                            <input type="date" id="date" class="form-control">
-                            <p id="dateError" class="field-error"></p>
-                        </div>
-
-                        <div class="choice-section">
-                            <div class="section-heading">
-                                <div>
-                                    <p class="eyebrow">Meal status</p>
-                                    <p class="section-note">Choose whether you will eat on the selected date.</p>
-                                </div>
-                                <div class="mini-note" id="selectedDateLabel">Ready for today</div>
-                            </div>
-
-                            <div class="radio-group" id="statusGroup">
-                                <label class="radio-card yes-card">
-                                    <input type="radio" name="status" value="yes">
-                                    <span class="radio-content">
-                                        <span class="radio-kicker">Attending</span>
-                                        <strong>Yes, include my meal</strong>
-                                        <small>Reserve your place in the count so the kitchen can prepare accurately.</small>
-                                    </span>
-                                </label>
-
-                                <label class="radio-card no-card">
-                                    <input type="radio" name="status" value="no">
-                                    <span class="radio-content">
-                                        <span class="radio-kicker">Skipping</span>
-                                        <strong>No, I will not eat</strong>
-                                        <small>Reduce waste and keep the daily plan precise when you are unavailable.</small>
-                                    </span>
-                                </label>
-                            </div>
-                            <p id="statusError" class="field-error"></p>
-                        </div>
-
-                        <button id="submitBtn" class="btn-submit" type="button" onclick="submitVote()">
-                            Confirm Vote
-                        </button>
-
-                        <div id="result" class="result-toast"></div>
-                    </article>
-
-                    <div class="app-side-stack">
-                        <aside class="panel shell-card ambient-panel reveal" id="ops-panel">
-                            <div class="panel-header">
-                                <div>
-                                    <p class="eyebrow">Counts</p>
-                                    <h2>Track live meal demand</h2>
-                                </div>
-                                <div class="panel-badge panel-badge-secondary">Live totals</div>
-                            </div>
-
-                            <p class="panel-intro">
-                                Review confirmed yes/no totals for any selected day with a fast operational summary.
-                            </p>
-
-                            <div class="ops-snapshot">
-                                <div class="snapshot-card accent">
-                                    <span class="snapshot-label">Selected date</span>
-                                    <strong id="liveDate">Not loaded</strong>
-                                </div>
-                                <div class="snapshot-row">
-                                    <div class="snapshot-card">
-                                        <span class="snapshot-label">Yes</span>
-                                        <strong id="liveYes">0</strong>
+                <section class="dashboard-grid-shell">
+                    <section class="dashboard-row">
+                        <div class="dashboard-main-column">
+                            <article class="panel shell-card reveal" id="vote-panel">
+                                <div class="panel-header">
+                                    <div>
+                                        <p class="eyebrow">Vote</p>
+                                        <h2>Confirm your meal plan</h2>
                                     </div>
-                                    <div class="snapshot-card">
-                                        <span class="snapshot-label">No</span>
-                                        <strong id="liveNo">0</strong>
+                                    <div class="panel-badge">Daily action</div>
+                                </div>
+
+                                <p class="panel-intro">
+                                    Your profile is already loaded. Pick a date, choose your status, and submit in one short flow.
+                                </p>
+
+                                <div class="identity-strip">
+                                    <div class="identity-chip">
+                                        <span>User ID</span>
+                                        <strong id="voteUserId">-</strong>
                                     </div>
-                                    <div class="snapshot-card">
-                                        <span class="snapshot-label">Total</span>
-                                        <strong id="liveTotal">0</strong>
+                                    <div class="identity-chip">
+                                        <span>Name</span>
+                                        <strong id="voteName">-</strong>
+                                    </div>
+                                    <div class="identity-chip accent-chip">
+                                        <span>Selection</span>
+                                        <strong id="statusPreview">Choose status</strong>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="count-visual">
-                                <div class="count-bar-track">
-                                    <div id="yesBar" class="count-bar yes-bar"></div>
-                                    <div id="noBar" class="count-bar no-bar"></div>
+                                <div class="form-group">
+                                    <label for="date">Attendance Date</label>
+                                    <input type="date" id="date" class="form-control">
+                                    <p id="dateError" class="field-error"></p>
                                 </div>
-                                <div class="count-legend">
-                                    <span><i class="legend-dot yes-dot"></i>Meal yes</span>
-                                    <span><i class="legend-dot no-dot"></i>Meal no</span>
+
+                                <div class="choice-section">
+                                    <div class="section-heading">
+                                        <div>
+                                            <p class="eyebrow">Meal status</p>
+                                            <p class="section-note">Choose whether you will eat on the selected date.</p>
+                                        </div>
+                                        <div class="mini-note" id="selectedDateLabel">Ready for today</div>
+                                    </div>
+
+                                    <div class="radio-group" id="statusGroup">
+                                        <label class="radio-card yes-card">
+                                            <input type="radio" name="status" value="yes">
+                                            <span class="radio-content">
+                                                <span class="radio-kicker">Attending</span>
+                                                <strong>Yes, include my meal</strong>
+                                                <small>Reserve your place in the count so the kitchen can prepare accurately.</small>
+                                            </span>
+                                        </label>
+
+                                        <label class="radio-card no-card">
+                                            <input type="radio" name="status" value="no">
+                                            <span class="radio-content">
+                                                <span class="radio-kicker">Skipping</span>
+                                                <strong>No, I will not eat</strong>
+                                                <small>Reduce waste and keep the daily plan precise when you are unavailable.</small>
+                                            </span>
+                                        </label>
+                                    </div>
+                                    <p id="statusError" class="field-error"></p>
                                 </div>
-                            </div>
 
-                            <div class="form-group">
-                                <label for="countDate">Reporting Date</label>
-                                <input type="date" id="countDate" class="form-control">
-                                <p id="countDateError" class="field-error"></p>
-                            </div>
+                                <button id="submitBtn" class="btn-submit" type="button" onclick="submitVote()">
+                                    Confirm Vote
+                                </button>
 
-                            <button id="countBtn" class="btn-submit btn-secondary" type="button" onclick="getCount()">
-                                Get Count
-                            </button>
+                                <div id="result" class="result-toast"></div>
+                            </article>
+                        </div>
 
-                            <div id="countResult" class="result-toast"></div>
-                        </aside>
+                        <div class="dashboard-side-column">
+                            <aside class="panel shell-card ambient-panel reveal" id="ops-panel">
+                                <div class="panel-header">
+                                    <div>
+                                        <p class="eyebrow">Counts</p>
+                                        <h2>Track live meal demand</h2>
+                                    </div>
+                                    <div class="panel-badge panel-badge-secondary">Live totals</div>
+                                </div>
 
+                                <p class="panel-intro">
+                                    Review confirmed yes/no totals for any selected day with a fast operational summary.
+                                </p>
+
+                                <div class="ops-snapshot">
+                                    <div class="snapshot-card accent">
+                                        <span class="snapshot-label">Selected date</span>
+                                        <strong id="liveDate">Not loaded</strong>
+                                    </div>
+                                    <div class="snapshot-row">
+                                        <div class="snapshot-card">
+                                            <span class="snapshot-label">Yes</span>
+                                            <strong id="liveYes">0</strong>
+                                        </div>
+                                        <div class="snapshot-card">
+                                            <span class="snapshot-label">No</span>
+                                            <strong id="liveNo">0</strong>
+                                        </div>
+                                        <div class="snapshot-card">
+                                            <span class="snapshot-label">Total</span>
+                                            <strong id="liveTotal">0</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="count-visual">
+                                    <div class="count-bar-track">
+                                        <div id="yesBar" class="count-bar yes-bar"></div>
+                                        <div id="noBar" class="count-bar no-bar"></div>
+                                    </div>
+                                    <div class="count-legend">
+                                        <span><i class="legend-dot yes-dot"></i>Meal yes</span>
+                                        <span><i class="legend-dot no-dot"></i>Meal no</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="countDate">Reporting Date</label>
+                                    <input type="date" id="countDate" class="form-control">
+                                    <p id="countDateError" class="field-error"></p>
+                                </div>
+
+                                <button id="countBtn" class="btn-submit btn-secondary" type="button" onclick="getCount()">
+                                    Get Count
+                                </button>
+
+                                <div id="countResult" class="result-toast"></div>
+                            </aside>
+                        </div>
+                    </section>
+
+                    <section class="dashboard-row analytics-row">
                         <section class="panel shell-card analytics-panel reveal" id="analytics-panel">
                             <div class="panel-header">
                                 <div>
@@ -484,7 +490,7 @@
 
                             <div id="analyticsResult" class="result-toast"></div>
                         </section>
-                    </div>
+                    </section>
                 </section>
             </section>
         </main>
