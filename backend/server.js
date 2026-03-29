@@ -1,6 +1,7 @@
 require("dotenv").config({ path: require("path").join(__dirname, ".env") });
 
 const crypto = require("crypto");
+const childProcess = require("child_process");
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -22,7 +23,33 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
 const VOTING_DEADLINE_HOUR = 22;
 const FRONTEND_ROOT_DIR = path.join(__dirname, "..", "frontend");
 const FRONTEND_DIST_DIR = path.join(FRONTEND_ROOT_DIR, "dist");
-const FRONTEND_DIR = fs.existsSync(FRONTEND_DIST_DIR) ? FRONTEND_DIST_DIR : FRONTEND_ROOT_DIR;
+const FRONTEND_PACKAGE_PATH = path.join(FRONTEND_ROOT_DIR, "package.json");
+
+function resolveFrontendDir() {
+  if (fs.existsSync(FRONTEND_DIST_DIR)) {
+    return FRONTEND_DIST_DIR;
+  }
+
+  if (!fs.existsSync(FRONTEND_PACKAGE_PATH)) {
+    return FRONTEND_ROOT_DIR;
+  }
+
+  try {
+    console.log("Frontend build not found. Building React frontend...");
+    childProcess.execFileSync("npm", ["run", "build"], {
+      cwd: FRONTEND_ROOT_DIR,
+      stdio: "inherit",
+      shell: process.platform === "win32"
+    });
+  } catch (error) {
+    console.error("Frontend build failed. Falling back to source directory.");
+    return FRONTEND_ROOT_DIR;
+  }
+
+  return fs.existsSync(FRONTEND_DIST_DIR) ? FRONTEND_DIST_DIR : FRONTEND_ROOT_DIR;
+}
+
+const FRONTEND_DIR = resolveFrontendDir();
 const API_ROUTE_PREFIXES = ["/auth", "/vote", "/count", "/analytics", "/all", "/health"];
 
 class AppError extends Error {
